@@ -1,0 +1,21 @@
+{
+  "name": "@neuromfe/dsp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@neuromfe/contracts": "workspace:*",
+    "fft.js": "^4.0.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.8"
+  }
+}

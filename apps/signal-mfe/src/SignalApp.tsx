@@ -1,0 +1,259 @@
+import { useEffect, useRef, useState } from "react";
+import {
+  CHANNEL_LABELS,
+  EEG_CHANNELS,
+  EVENT_NAMES,
+  MOTOR_CHANNELS,
+  SAMPLE_RATE_HZ,
+  WINDOW_DURATION_MS,
+  motorTaskWaveHint,
+  publish,
+  setLastCalibrationWindow,
+  subscribe,
+  wait,
+  demoDelay,
+  type AppMode,
+  type EEGFeatures,
+  type EEGWindow,
+  type MotorTask,
+} from "@neuromfe/contracts";
+import { bandpassFilter, emptyEegFeatures, extractFeatures, removeDC, SyntheticEEGSource } from "@neuromfe/dsp";
+import { Oscilloscope } from "./Oscilloscope";
+import styles from "./signal.module.css";
+
+const VERSION = "1.0.0";
+const source = new SyntheticEEGSource(2026);
+
+function filterWindow(eeg: EEGWindow): EEGWindow {
+  return {
+    ...eeg,
+    channels: eeg.channels.map((channel) => ({
+      channel: channel.channel,
+      samples: bandpassFilter(removeDC(channel.samples), eeg.sampleRate),
+    })),
+  };
+}
+
+function formatPower(value: number): string {
+  return (value / 1000).toFixed(2);
+}
+
+function formatPct(value: number): string {
+  return `${Math.round(value * 100)} %`;
+}
+
+export default function SignalApp() {
+  const [mode, setMode] = useState<AppMode>("EXPLORE");
+  const [view, setView] = useState<"RAW" | "FILTERED">("RAW");
+  const [paused, setPaused] = useState(false);
+  const [calibrated, setCalibrated] = useState(false);
+  const [features, setFeatures] = useState<EEGFeatures>(emptyEegFeatures());
+  const [liveTask, setLiveTask] = useState<MotorTask>("REST");
+  const [focusedTask, setFocusedTask] = useState<MotorTask | null>(null);
+  const pausedRef = useRef(false);
+  const rawRef = useRef<EEGWindow | null>(null);
+  const filteredRef = useRef<EEGWindow | null>(null);
+  const secretsRef = useRef<Map<string, MotorTask>>(new Map());
+  const playToken = useRef(0);
+  const modeRef = useRef<AppMode>("EXPLORE");
+  const calibratedRef = useRef(false);
+
+  useEffect(() => {
+    pausedRef.current = paused;
+  }, [paused]);
+
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+
+  async function playWindow(raw: EEGWindow, filtered: EEGWindow) {
+    const token = playToken.current + 1;
+    playToken.current = token;
+    rawRef.current = raw;
+    filteredRef.current = filtered;
+    const duration = demoDelay(WINDOW_DURATION_MS);
+    if (duration <= 0) {
+      return;
+    }
+    let elapsed = 0;
+    let last = performance.now();
+    await new Promise<void>((resolve) => {
+      const tick = () => {
+        if (playToken.current !== token) {
+          resolve();
+          return;
+        }
+        const now = performance.now();
+        if (!pausedRef.current) {
+          elapsed += now - last;
+        }
+        last = now;
+        if (elapsed >= duration) {
+          resolve();
+          return;
+        }
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+
+  async function calibrate() {
+    calibratedRef.current = false;
+    setCalibrated(false);
+    setLiveTask("REST");
+    publish(EVENT_NAMES.EEG_CALIBRATION_STARTED, { timestamp: Date.now() });
+    const window = await source.calibrate();
+    const filtered = filterWindow(window);
+    await playWindow(window, filtered);
+    setLastCalibrationWindow(window);
+    publish(EVENT_NAMES.EEG_CALIBRATION_COMPLETED, { window, timestamp: Date.now() });
+    setFeatures(extractFeatures(window));
+    calibratedRef.current = true;
+    setCalibrated(true);
+  }
+
+  async function runTrial(task: MotorTask, secret: boolean) {
+    if (!calibratedRef.current) {
+      await calibrate();
+    }
+    setLiveTask(task);
+    const trial = await source.startTrial({ task });
+    if (secret) {
+      secretsRef.current.set(trial.trialId, task);
+    }
+    publish(EVENT_NAMES.EEG_TRIAL_STARTED, {
+      trialId: trial.trialId,
+      mode: modeRef.current,
+      timestamp: Date.now(),
+    });
+    const filtered = filterWindow(trial);
+    await playWindow(trial, filtered);
+    publish(EVENT_NAMES.EEG_WINDOW_READY, { window: trial, timestamp: Date.now() });
+  }
+
+  useEffect(() => {
+    publish(EVENT_NAMES.MFE_READY, { id: "signal-mfe", version: VERSION, timestamp: Date.now() });
+    void calibrate();
+    const unsubscribers = [
+      subscribe(EVENT_NAMES.APP_MODE_CHANGED, (payload) => {
+        setMode(payload.mode);
+        setLiveTask("REST");
+        setFocusedTask(null);
+      }),
+      subscribe(EVENT_NAMES.MOTOR_ZONE_FOCUSED, (payload) => {
+        setFocusedTask(payload.task);
+      }),
+      subscribe(EVENT_NAMES.MOTOR_TASK_SELECTED, (payload) => {
+        if (modeRef.current === "EXPLORE") {
+          void runTrial(payload.task, false);
+        }
+      }),
+      subscribe(EVENT_NAMES.NEW_BCI_TRIAL_REQUESTED, () => {
+        const task = source.randomTask(Date.now());
+        void runTrial(task, true);
+      }),
+      subscribe(EVENT_NAMES.RECALIBRATE_REQUESTED, () => {
+        void calibrate();
+      }),
+      subscribe(EVENT_NAMES.SIGNAL_FEATURES_EXTRACTED, (payload) => setFeatures(payload.features)),
+      subscribe(EVENT_NAMES.CLASSIFICATION_RESULT, async (payload) => {
+        const actual = secretsRef.current.get(payload.trialId);
+        if (!actual) return;
+        await wait(350);
+        publish(EVENT_NAMES.TRIAL_GROUND_TRUTH_REVEALED, {
+          trialId: payload.trialId,
+          actualTask: actual,
+          predictedTask: payload.predictedTask,
+          match: actual === payload.predictedTask,
+          timestamp: Date.now(),
+        });
+        secretsRef.current.delete(payload.trialId);
+      }),
+    ];
+    return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <section className={styles.panel} data-testid="mfe-signal" aria-label="Signal Micro Frontend">
+      <div className={styles.scope}>
+        <div className={styles.toolbar}>
+          <div>
+            <p className={styles.kicker}>Adquisición</p>
+            <h2 className={styles.title}>Osciloscopio EEG simulado</h2>
+            <p className={styles.liveHint} data-testid="scope-hint">
+              {motorTaskWaveHint(focusedTask ?? liveTask)}
+            </p>
+          </div>
+          <div className={styles.meta}>
+            <span>Sample Rate: {SAMPLE_RATE_HZ} Hz</span>
+            <span>Window: {(WINDOW_DURATION_MS / 1000).toFixed(1)} s</span>
+            <span>Channels: {EEG_CHANNELS.length}</span>
+          </div>
+        </div>
+        <div className={styles.actions}>
+          <div className={styles.viewToggle} role="group" aria-label="Vista de señal">
+            <button type="button" aria-pressed={view === "RAW"} onClick={() => setView("RAW")}>
+              RAW
+            </button>
+            <button type="button" aria-pressed={view === "FILTERED"} onClick={() => setView("FILTERED")}>
+              FILTERED
+            </button>
+          </div>
+          <button type="button" aria-pressed={paused} onClick={() => setPaused((value) => !value)}>
+            {paused ? "Reanudar" : "Pausar señal"}
+          </button>
+          <button type="button" onClick={() => void calibrate()}>
+            Recalibrar
+          </button>
+        </div>
+        <Oscilloscope task={focusedTask ?? liveTask} paused={paused} viewLabel={view} />
+        <p className={styles.caption}>Montaje 10-20 simulado (Fp1–O1). El clasificador motor usa C3, Cz y C4. Unidades sintéticas; no hay hardware conectado.</p>
+      </div>
+      <aside className={styles.side}>
+        <div className={styles.card}>
+          <p className={styles.kicker}>Baseline 10-20</p>
+          {EEG_CHANNELS.map((channel) => (
+            <div className={styles.calRow} key={channel}>
+              <span>{CHANNEL_LABELS[channel]}</span>
+              <span className={calibrated ? styles.ok : undefined}>{calibrated ? "✓" : "…"}</span>
+            </div>
+          ))}
+          <p className={styles.caption}>Estado: {calibrated ? "Calibrado" : "Calibrando señal de reposo..."}</p>
+        </div>
+        <div className={styles.card}>
+          <p className={styles.kicker}>Bandas motoras</p>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Canal</th>
+                <th title="Ritmo EEG aproximadamente entre 8 y 13 Hz, frecuentemente estudiado en tareas sensoriomotoras.">
+                  Mu
+                </th>
+                <th title="Actividad aproximada entre 13 y 30 Hz.">Beta</th>
+                <th title="Event Related Desynchronization: reducción simulada de potencia respecto al baseline.">
+                  ERD
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {MOTOR_CHANNELS.map((channel) => {
+                const row = features[channel];
+                const suppression = 0.6 * row.muSuppression + 0.4 * row.betaSuppression;
+                return (
+                  <tr key={channel}>
+                    <td>{CHANNEL_LABELS[channel]}</td>
+                    <td>{formatPower(row.muPower)}</td>
+                    <td>{formatPower(row.betaPower)}</td>
+                    <td>{formatPct(suppression)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </aside>
+    </section>
+  );
+}
