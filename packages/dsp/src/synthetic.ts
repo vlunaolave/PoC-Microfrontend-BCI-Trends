@@ -16,23 +16,23 @@ const REST_PROFILE: Record<EEGChannel, AmplitudeProfile> = {
 function taskProfiles(task: MotorTask): Record<EEGChannel, AmplitudeProfile> {
   if (task === "RIGHT_HAND") {
     return {
-      C3: { mu: 0.28, beta: 0.22 },
-      CZ: { mu: 0.88, beta: 0.8 },
-      C4: { mu: 0.94, beta: 0.9 },
+      C3: { mu: 0.22, beta: 0.16 },
+      CZ: { mu: 0.9, beta: 0.82 },
+      C4: { mu: 0.95, beta: 0.9 },
     };
   }
   if (task === "LEFT_HAND") {
     return {
-      C3: { mu: 0.94, beta: 0.9 },
-      CZ: { mu: 0.88, beta: 0.8 },
-      C4: { mu: 0.28, beta: 0.22 },
+      C3: { mu: 0.95, beta: 0.9 },
+      CZ: { mu: 0.9, beta: 0.82 },
+      C4: { mu: 0.22, beta: 0.16 },
     };
   }
   if (task === "FEET") {
     return {
-      C3: { mu: 0.9, beta: 0.84 },
-      CZ: { mu: 0.3, beta: 0.24 },
-      C4: { mu: 0.9, beta: 0.84 },
+      C3: { mu: 0.92, beta: 0.86 },
+      CZ: { mu: 0.22, beta: 0.16 },
+      C4: { mu: 0.92, beta: 0.86 },
     };
   }
   return REST_PROFILE;

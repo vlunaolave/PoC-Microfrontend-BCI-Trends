@@ -33,6 +33,7 @@ export default defineConfig(({ mode }) => {
           },
         },
         shared: sharedReact(),
+        dts: false,
       }),
     ],
     server: {

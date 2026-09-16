@@ -12,4 +12,6 @@ export default {
     "./DecoderApp": "./src/DecoderApp.tsx",
   },
   shared: sharedReact(),
+  dts: false,
+  bundleAllCSS: true,
 };

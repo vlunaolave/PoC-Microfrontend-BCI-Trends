@@ -127,13 +127,26 @@ export default function App() {
         push(EVENT_NAMES.CLASSIFICATION_RESULT, "decoder-mfe", payload),
       ),
       subscribe(EVENT_NAMES.TRIAL_GROUND_TRUTH_REVEALED, (payload) =>
-        push(EVENT_NAMES.TRIAL_GROUND_TRUTH_REVEALED, "signal-mfe", payload),
+        {
+          setTask(payload.actualTask);
+          push(EVENT_NAMES.TRIAL_GROUND_TRUTH_REVEALED, "signal-mfe", payload);
+        },
       ),
     ];
     return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
   }, []);
 
-  const explanation = useMemo(() => WHAT[task ?? "REST"], [task]);
+  const explanation = useMemo(() => {
+    if (mode === "BCI" && !task) {
+      return [
+        "Signal elige internamente una clase secreta.",
+        "El Decoder solo recibe la ventana EEG, no la etiqueta.",
+        "El pipeline calcula Mu/Beta contra el baseline.",
+        "El patrón real se revela después de clasificar.",
+      ];
+    }
+    return WHAT[task ?? "REST"];
+  }, [mode, task]);
 
   function changeMode(next: AppMode) {
     setMode(next);
@@ -171,7 +184,7 @@ export default function App() {
 
   return (
     <div className={styles.app}>
-      <header className={styles.header}>
+      <header className={styles.header} data-testid="app-header">
         <div className={styles.brand}>
           <svg className={styles.logo} viewBox="0 0 36 36" aria-hidden="true">
             <circle cx="18" cy="18" r="16" fill="#1b2531" stroke="#3db8e8" />

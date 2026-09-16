@@ -12,4 +12,6 @@ export default {
     "./BodyApp": "./src/BodyApp.tsx",
   },
   shared: sharedReact(),
+  dts: false,
+  bundleAllCSS: true,
 };

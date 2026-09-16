@@ -3,8 +3,9 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: 12px 14px;
-  gap: 8px;
+  padding: 12px 14px 10px;
+  gap: 6px;
+  overflow: hidden;
 }
 
 .header {
@@ -34,15 +35,18 @@
 }
 
 .figureWrap {
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  place-items: center;
+  flex: 1 1 auto;
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .svg {
-  width: min(100%, 420px);
-  height: min(100%, 280px);
+  width: min(360px, 100%);
+  height: auto;
+  max-height: 180px;
 }
 
 .hemisphere {
@@ -53,13 +57,13 @@
 }
 
 .leftActive {
-  fill: #3a4c88;
-  filter: drop-shadow(0 0 12px rgba(124, 140, 255, 0.45));
+  fill: #4d63b8;
+  filter: drop-shadow(0 0 14px rgba(124, 140, 255, 0.6));
 }
 
 .rightActive {
-  fill: #4a3a78;
-  filter: drop-shadow(0 0 12px rgba(176, 124, 255, 0.45));
+  fill: #6a4a9a;
+  filter: drop-shadow(0 0 14px rgba(176, 124, 255, 0.6));
 }
 
 .medial {

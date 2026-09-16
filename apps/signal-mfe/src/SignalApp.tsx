@@ -4,6 +4,7 @@ import {
   SAMPLE_RATE_HZ,
   WINDOW_DURATION_MS,
   publish,
+  setLastCalibrationWindow,
   subscribe,
   wait,
   demoDelay,
@@ -38,7 +39,7 @@ function samplesOf(window: EEGWindow, channel: "C3" | "CZ" | "C4"): number[] {
 }
 
 function formatPower(value: number): string {
-  return value.toFixed(3);
+  return (value / 1000).toFixed(2);
 }
 
 function formatPct(value: number): string {
@@ -127,6 +128,7 @@ export default function SignalApp() {
     const window = await source.calibrate();
     const filtered = filterWindow(window);
     await playWindow(window, filtered);
+    setLastCalibrationWindow(window);
     publish(EVENT_NAMES.EEG_CALIBRATION_COMPLETED, { window, timestamp: Date.now() });
     setFeatures(extractFeatures(window));
     calibratedRef.current = true;

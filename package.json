@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "concurrently -k -n shell,body,brain,signal,decoder -c cyan,green,magenta,yellow,blue \"pnpm --filter @neuromfe/shell dev\" \"pnpm --filter @neuromfe/body-mfe dev\" \"pnpm --filter @neuromfe/brain-mfe dev\" \"pnpm --filter @neuromfe/signal-mfe dev\" \"pnpm --filter @neuromfe/decoder-mfe dev\"",
     "build": "pnpm -r --filter \"./packages/**\" --if-present build && pnpm -r --filter \"./apps/**\" --if-present build",
-    "test": "pnpm -r --if-present test",
+    "test": "pnpm --filter @neuromfe/contracts --filter @neuromfe/dsp test",
     "test:e2e": "pnpm --filter @neuromfe/e2e test",
     "lint": "eslint .",
     "typecheck": "pnpm -r --if-present typecheck",

@@ -3,6 +3,7 @@ import {
   EVENT_NAMES,
   MOTOR_TASK_COMMANDS,
   MOTOR_TASK_LABELS,
+  getLastCalibrationWindow,
   publish,
   subscribe,
   wait,
@@ -34,11 +35,24 @@ export default function DecoderApp() {
 
   useEffect(() => {
     publish(EVENT_NAMES.MFE_READY, { id: "decoder-mfe", version: VERSION, timestamp: Date.now() });
+    const existing = getLastCalibrationWindow();
+    if (existing) {
+      baselineRef.current = extractFeatures(existing);
+    }
     const unsubscribers = [
       subscribe(EVENT_NAMES.EEG_CALIBRATION_COMPLETED, (payload) => {
         baselineRef.current = extractFeatures(payload.window);
       }),
       subscribe(EVENT_NAMES.EEG_WINDOW_READY, async (payload) => {
+        if (!baselineRef.current) {
+          const latest = getLastCalibrationWindow();
+          if (latest) {
+            baselineRef.current = extractFeatures(latest);
+          }
+        }
+        if (!baselineRef.current) {
+          return;
+        }
         setTruth(null);
         setResult(null);
         setActiveSteps([]);

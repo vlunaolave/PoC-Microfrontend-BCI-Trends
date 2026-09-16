@@ -12,4 +12,6 @@ export default {
     "./SignalApp": "./src/SignalApp.tsx",
   },
   shared: sharedReact(),
+  dts: false,
+  bundleAllCSS: true,
 };

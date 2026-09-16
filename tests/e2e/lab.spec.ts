@@ -1,18 +1,17 @@
 import { expect, test } from "@playwright/test";
 
-test.describe.configure({ mode: "serial" });
-
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await expect(page.getByTestId("mfe-body")).toBeVisible();
   await expect(page.getByTestId("mfe-brain")).toBeVisible();
   await expect(page.getByTestId("mfe-signal")).toBeVisible();
   await expect(page.getByTestId("mfe-decoder")).toBeVisible();
+  await expect(page.getByText("Estado: Calibrado")).toBeVisible();
 });
 
 test("el shell carga los cuatro micro frontends", async ({ page }) => {
-  await expect(page.getByText("NeuroMFE")).toBeVisible();
-  await expect(page.getByText("SIMULACIÓN")).toBeVisible();
+  await expect(page.getByTestId("app-header")).toContainText("NeuroMFE");
+  await expect(page.getByText("SIMULACIÓN", { exact: true })).toBeVisible();
 });
 
 test("mano derecha produce el comando de mano derecha", async ({ page }) => {
