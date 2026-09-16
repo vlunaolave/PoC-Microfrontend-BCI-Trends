@@ -2,7 +2,7 @@
   min-height: 100vh;
   height: 100vh;
   display: grid;
-  grid-template-rows: 58px minmax(300px, 1.15fr) 290px minmax(180px, 0.7fr) 28px;
+  grid-template-rows: 58px minmax(280px, 1.2fr) minmax(200px, 0.85fr) minmax(220px, 0.7fr) 28px;
   gap: 8px;
   padding: 8px 12px 4px;
   background:
@@ -159,7 +159,7 @@
 
 .bottom {
   display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
+  grid-template-columns: 0.9fr 1.1fr;
   gap: 10px;
   min-height: 0;
 }

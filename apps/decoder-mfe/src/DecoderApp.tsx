@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   EVENT_NAMES,
   MOTOR_TASK_COMMANDS,
@@ -12,7 +12,16 @@ import {
   type MotorTask,
 } from "@neuromfe/contracts";
 import { classifyMotorImagery, emptyEegFeatures, extractFeatures } from "@neuromfe/dsp";
+import { Footprints, Hand, Pause, Radio } from "lucide-react";
 import styles from "./decoder.module.css";
+
+function patternIcon(task: MotorTask | null): ReactNode {
+  if (task === "RIGHT_HAND") return <Hand size={28} />;
+  if (task === "LEFT_HAND") return <Hand size={28} className={styles.flip} />;
+  if (task === "FEET") return <Footprints size={28} />;
+  if (task === "REST") return <Pause size={28} />;
+  return <Radio size={28} />;
+}
 
 const VERSION = "1.0.0";
 
@@ -110,30 +119,45 @@ export default function DecoderApp() {
           ))}
         </ol>
       </div>
-      <div className={styles.result} data-testid="classification-result">
-        <p className={styles.kicker}>Patrón detectado</p>
-        <p className={styles.intent}>
-          {result ? MOTOR_TASK_COMMANDS[result.predictedTask] : "Esperando una ventana EEG"}
-        </p>
+      <div
+        className={`${styles.result} ${result ? styles.resultLive : styles.resultIdle}`}
+        data-testid="classification-result"
+        data-task={result?.predictedTask ?? "idle"}
+      >
+        <div className={styles.resultHeader}>
+          <p className={styles.kicker}>Patrón detectado</p>
+          <span className={styles.statusPill}>{result ? "Clasificado" : "En espera"}</span>
+        </div>
+        <div className={styles.commandRow}>
+          <span className={styles.glyph} aria-hidden="true">
+            {patternIcon(result?.predictedTask ?? null)}
+          </span>
+          <p className={styles.intent}>
+            {result ? MOTOR_TASK_COMMANDS[result.predictedTask] : "Esperando una ventana EEG"}
+          </p>
+        </div>
         {result ? (
           <>
-            <div className={styles.confidence}>
-              Confianza de la simulación {Math.round(result.confidence * 100)} %
+            <div className={styles.meter} aria-hidden="true">
+              <span style={{ width: `${Math.round(result.confidence * 100)}%` }} />
             </div>
-            <div className={styles.confidence}>
-              Canal dominante {result.dominantChannel ? result.dominantChannel : "ninguno"}
+            <div className={styles.meta}>
+              <span>Confianza de la simulación {Math.round(result.confidence * 100)} %</span>
+              <span>Canal dominante {result.dominantChannel ? result.dominantChannel : "ninguno"}</span>
+              {result.predictedTask !== "REST" ? (
+                <span>
+                  Mu suppression {Math.round((result.features[result.dominantChannel ?? "C3"].muSuppression) * 100)} %
+                  {" · "}
+                  Beta suppression {Math.round((result.features[result.dominantChannel ?? "C3"].betaSuppression) * 100)} %
+                </span>
+              ) : (
+                <span>No se detectó un patrón motor por encima del umbral.</span>
+              )}
             </div>
-            {result.predictedTask !== "REST" ? (
-              <div className={styles.confidence}>
-                Mu suppression {Math.round((result.features[result.dominantChannel ?? "C3"].muSuppression) * 100)} %
-                {" · "}
-                Beta suppression {Math.round((result.features[result.dominantChannel ?? "C3"].betaSuppression) * 100)} %
-              </div>
-            ) : (
-              <div className={styles.confidence}>No se detectó un patrón motor por encima del umbral.</div>
-            )}
           </>
-        ) : null}
+        ) : (
+          <p className={styles.idleHint}>El clasificador heurístico espera la siguiente ventana de 2 s.</p>
+        )}
         {truth && result ? (
           <div className={styles.truth} data-testid="ground-truth">
             <div>Patrón real de la simulación: {MOTOR_TASK_LABELS[truth.actual]}</div>

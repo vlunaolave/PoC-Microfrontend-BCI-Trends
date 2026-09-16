@@ -266,20 +266,6 @@ export default function App() {
         )}
       </div>
 
-      {remoteSlot(
-        "signal-mfe",
-        "SIGNAL MFE",
-        "3003",
-        <RemoteErrorBoundary
-          name="Signal MFE"
-          onError={() => publish(EVENT_NAMES.MFE_ERROR, { id: "signal-mfe", message: "load failed", timestamp: Date.now() })}
-        >
-          <Suspense fallback={<RemoteSkeleton label="Signal MFE" />}>
-            <SignalApp />
-          </Suspense>
-        </RemoteErrorBoundary>,
-      )}
-
       <div className={styles.bottom}>
         <div className={styles.sideStack}>
           <div className={styles.card}>
@@ -342,6 +328,20 @@ export default function App() {
           </RemoteErrorBoundary>,
         )}
       </div>
+
+      {remoteSlot(
+        "signal-mfe",
+        "SIGNAL MFE",
+        "3003",
+        <RemoteErrorBoundary
+          name="Signal MFE"
+          onError={() => publish(EVENT_NAMES.MFE_ERROR, { id: "signal-mfe", message: "load failed", timestamp: Date.now() })}
+        >
+          <Suspense fallback={<RemoteSkeleton label="Signal MFE" />}>
+            <SignalApp />
+          </Suspense>
+        </RemoteErrorBoundary>,
+      )}
 
       <footer className={styles.footer}>
         <span>NeuroMFE Lab es una simulación educativa. Las señales mostradas son sintéticas y no corresponden a mediciones clínicas ni permiten realizar diagnósticos.</span>
