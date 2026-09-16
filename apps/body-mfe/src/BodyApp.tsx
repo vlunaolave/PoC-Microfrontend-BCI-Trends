@@ -13,6 +13,13 @@ import styles from "./body.module.css";
 
 const VERSION = "1.0.0";
 
+function focusZone(task: MotorTask | null) {
+  publish(EVENT_NAMES.MOTOR_ZONE_FOCUSED, {
+    task,
+    timestamp: Date.now(),
+  });
+}
+
 function selectTask(task: MotorTask) {
   publish(EVENT_NAMES.MOTOR_TASK_SELECTED, {
     task,
@@ -60,7 +67,7 @@ export default function BodyApp() {
       </header>
 
       <div className={styles.figureWrap}>
-        <BodyFigure task={task} disabled={disabled} onSelect={selectTask} />
+        <BodyFigure task={task} disabled={disabled} onSelect={selectTask} onFocus={focusZone} />
       </div>
 
       <div className={styles.controls}>
@@ -72,13 +79,19 @@ export default function BodyApp() {
             aria-pressed={task === item}
             disabled={disabled}
             onClick={() => selectTask(item)}
+            onMouseEnter={() => {
+              if (!disabled) focusZone(item);
+            }}
+            onMouseLeave={() => {
+              if (!disabled) focusZone(null);
+            }}
           >
             {MOTOR_TASK_LABELS[item]}
           </button>
         ))}
       </div>
       <p className={styles.note}>
-        Vista frontal. La mano derecha del sujeto aparece a la izquierda. Las regiones no son un mapa anatómico exacto.
+        Vista frontal. Pasa el cursor o pulsa una zona: la onda EEG correspondiente oscila en el osciloscopio. La mano derecha del sujeto aparece a la izquierda.
         {!isEmbeddedInShell() ? " Standalone Micro Frontend." : ""}
       </p>
     </section>

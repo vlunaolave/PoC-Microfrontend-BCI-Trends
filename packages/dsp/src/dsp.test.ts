@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { SAMPLE_RATE_HZ } from "@neuromfe/contracts";
+import { SAMPLE_RATE_HZ, type MotorTask } from "@neuromfe/contracts";
 import { classifyMotorImagery } from "./classifier";
 import { extractFeatures } from "./features";
 import { bandpassFilter } from "./filter";
 import { computeBandPower, computeSpectrum } from "./fft";
 import { removeDC } from "./remove-dc";
-import { generateSyntheticWindow } from "./synthetic";
+import { generateSyntheticWindow, LiveEEGStream } from "./synthetic";
 
 function sine(freq: number, seconds = 2, sampleRate = SAMPLE_RATE_HZ): number[] {
   const n = sampleRate * seconds;
@@ -72,5 +72,41 @@ describe("synthetic EEG + classifier", () => {
   it("REST stays below the motor threshold", () => {
     const features = extractFeatures(generateSyntheticWindow("REST", 24, "rest"), baseline);
     expect(classifyMotorImagery(features, "rest").predictedTask).toBe("REST");
+  });
+});
+
+describe("live EEG stream follows the body zone", () => {
+  function rms(samples: number[]): number {
+    return Math.sqrt(samples.reduce((sum, value) => sum + value * value, 0) / Math.max(samples.length, 1));
+  }
+
+  function capture(task: MotorTask) {
+    const stream = new LiveEEGStream(7);
+    stream.setTask(task);
+    const buffers: Record<"C3" | "CZ" | "C4", number[]> = { C3: [], CZ: [], C4: [] };
+    stream.push(500, buffers, true);
+    buffers.C3.length = 0;
+    buffers.CZ.length = 0;
+    buffers.C4.length = 0;
+    stream.push(600, buffers, true);
+    return { C3: rms(buffers.C3), CZ: rms(buffers.CZ), C4: rms(buffers.C4) };
+  }
+
+  it("RIGHT_HAND makes C3 much larger than C4 and Cz", () => {
+    const energy = capture("RIGHT_HAND");
+    expect(energy.C3).toBeGreaterThan(energy.C4 * 4);
+    expect(energy.C3).toBeGreaterThan(energy.CZ * 4);
+  });
+
+  it("LEFT_HAND makes C4 much larger than C3 and Cz", () => {
+    const energy = capture("LEFT_HAND");
+    expect(energy.C4).toBeGreaterThan(energy.C3 * 4);
+    expect(energy.C4).toBeGreaterThan(energy.CZ * 4);
+  });
+
+  it("FEET makes Cz much larger than C3 and C4", () => {
+    const energy = capture("FEET");
+    expect(energy.CZ).toBeGreaterThan(energy.C3 * 4);
+    expect(energy.CZ).toBeGreaterThan(energy.C4 * 4);
   });
 });

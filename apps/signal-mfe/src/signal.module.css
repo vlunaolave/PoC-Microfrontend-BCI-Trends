@@ -125,6 +125,13 @@
   color: var(--success);
 }
 
+.liveHint {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--accent);
+}
+
 .caption {
   margin: 0;
   font-size: 11px;

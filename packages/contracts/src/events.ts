@@ -11,6 +11,7 @@ export const EVENT_NAMES = {
   APP_MODE_CHANGED: "app:mode-changed",
   MOTOR_TASK_SELECTED: "motor:task-selected",
   MOTOR_TASK_CLEARED: "motor:task-cleared",
+  MOTOR_ZONE_FOCUSED: "motor:zone-focused",
   MFE_READY: "mfe:ready",
   MFE_ERROR: "mfe:error",
   EEG_CALIBRATION_STARTED: "eeg:calibration-started",
@@ -40,6 +41,11 @@ export interface MotorTaskSelectedPayload {
 }
 
 export interface MotorTaskClearedPayload {
+  timestamp: number;
+}
+
+export interface MotorZoneFocusedPayload {
+  task: MotorTask | null;
   timestamp: number;
 }
 
@@ -115,6 +121,7 @@ export interface NeuroEventMap {
   [EVENT_NAMES.APP_MODE_CHANGED]: AppModeChangedPayload;
   [EVENT_NAMES.MOTOR_TASK_SELECTED]: MotorTaskSelectedPayload;
   [EVENT_NAMES.MOTOR_TASK_CLEARED]: MotorTaskClearedPayload;
+  [EVENT_NAMES.MOTOR_ZONE_FOCUSED]: MotorZoneFocusedPayload;
   [EVENT_NAMES.MFE_READY]: MfeReadyPayload;
   [EVENT_NAMES.MFE_ERROR]: MfeErrorPayload;
   [EVENT_NAMES.EEG_CALIBRATION_STARTED]: EegCalibrationStartedPayload;
@@ -138,6 +145,9 @@ export function summarizeEvent(eventName: EventName, payload: unknown): string {
   }
   if (eventName === EVENT_NAMES.MOTOR_TASK_SELECTED) {
     return (payload as MotorTaskSelectedPayload).task;
+  }
+  if (eventName === EVENT_NAMES.MOTOR_ZONE_FOCUSED) {
+    return (payload as MotorZoneFocusedPayload).task ?? "none";
   }
   if (eventName === EVENT_NAMES.CLASSIFICATION_RESULT) {
     const result = payload as ClassificationResultPayload;

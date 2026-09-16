@@ -1,5 +1,11 @@
 import type { EEGChannel, EEGSource, EEGWindow, MotorTask } from "@neuromfe/contracts";
-import { EEG_CHANNELS, SAMPLE_RATE_HZ, SAMPLES_PER_WINDOW, WINDOW_DURATION_MS } from "@neuromfe/contracts";
+import {
+  EEG_CHANNELS,
+  SAMPLE_RATE_HZ,
+  SAMPLES_PER_WINDOW,
+  WINDOW_DURATION_MS,
+  channelsForMotorTask,
+} from "@neuromfe/contracts";
 import { createRng } from "./math";
 
 export interface AmplitudeProfile {
@@ -57,6 +63,21 @@ function taskProfiles(task: MotorTask): Record<EEGChannel, AmplitudeProfile> {
     };
   }
   return REST_PROFILE;
+}
+
+function liveDisplayProfiles(task: MotorTask): Record<EEGChannel, AmplitudeProfile> {
+  const quiet = { mu: 0.08, beta: 0.04 };
+  const idle = { mu: 0.48, beta: 0.24 };
+  const strong = { mu: 3.6, beta: 1.9 };
+  const medium = { mu: 2.25, beta: 1.2 };
+  const bilateral = { mu: 2.05, beta: 1.1 };
+  if (task === "RIGHT_HAND") return { C3: strong, CZ: quiet, C4: quiet };
+  if (task === "RIGHT_ARM") return { C3: medium, CZ: quiet, C4: quiet };
+  if (task === "LEFT_HAND") return { C3: quiet, CZ: quiet, C4: strong };
+  if (task === "LEFT_ARM") return { C3: quiet, CZ: quiet, C4: medium };
+  if (task === "FEET") return { C3: quiet, CZ: strong, C4: quiet };
+  if (task === "TONGUE") return { C3: bilateral, CZ: medium, C4: bilateral };
+  return { C3: idle, CZ: idle, C4: idle };
 }
 
 function generateChannel(
@@ -138,6 +159,7 @@ const BUFFER_SECONDS = 2.4;
 
 export class LiveEEGStream {
   private time = 0;
+  private task: MotorTask = "REST";
   private oscillators: Record<EEGChannel, ChannelOscillator>;
   private target: Record<EEGChannel, AmplitudeProfile> = { ...REST_PROFILE };
 
@@ -157,28 +179,32 @@ export class LiveEEGStream {
   }
 
   setTask(task: MotorTask): void {
-    this.target = taskProfiles(task);
+    this.task = task;
+    this.target = liveDisplayProfiles(task);
   }
 
   push(sampleCount: number, buffers: Record<EEGChannel, number[]>, filtered: boolean, maxLength = Math.round(SAMPLE_RATE_HZ * BUFFER_SECONDS)): void {
     const dt = 1 / SAMPLE_RATE_HZ;
+    const linked = new Set(channelsForMotorTask(this.task));
     for (let i = 0; i < sampleCount; i += 1) {
       this.time += dt;
+      const envelope = 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(2 * Math.PI * 1.15 * this.time));
       for (const channel of EEG_CHANNELS) {
         const osc = this.oscillators[channel];
         const target = this.target[channel];
-        osc.mu += (target.mu - osc.mu) * 0.04;
-        osc.beta += (target.beta - osc.beta) * 0.04;
+        osc.mu += (target.mu - osc.mu) * 0.18;
+        osc.beta += (target.beta - osc.beta) * 0.18;
         const wander = 0.25 * Math.sin(2 * Math.PI * 0.18 * this.time + osc.driftPhase);
         osc.muPhase += 2 * Math.PI * (osc.muFreq + wander) * dt;
         osc.betaPhase += 2 * Math.PI * (osc.betaFreq + wander * 0.4) * dt;
         osc.driftPhase += 2 * Math.PI * 0.28 * dt;
         osc.mainsPhase += 2 * Math.PI * 60 * dt;
-        const mu = osc.mu * 18 * Math.sin(osc.muPhase);
-        const beta = osc.beta * 9 * Math.sin(osc.betaPhase);
+        const pulse = linked.has(channel) ? envelope : 1;
+        const mu = osc.mu * 20 * pulse * Math.sin(osc.muPhase);
+        const beta = osc.beta * 10 * pulse * Math.sin(osc.betaPhase);
         const drift = filtered ? 0 : 3.2 * Math.sin(osc.driftPhase);
         const mains = filtered ? 0 : 1.1 * Math.sin(osc.mainsPhase);
-        const noise = (Math.sin(this.time * 37.1 + osc.muPhase) * 0.7 + Math.sin(this.time * 53.3 + osc.betaPhase)) * (filtered ? 0.8 : 1.6);
+        const noise = (Math.sin(this.time * 37.1 + osc.muPhase) * 0.7 + Math.sin(this.time * 53.3 + osc.betaPhase)) * (filtered ? 0.35 : 0.9);
         const sample = mu + beta + drift + mains + noise;
         const buffer = buffers[channel];
         buffer.push(sample);

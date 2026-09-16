@@ -44,3 +44,12 @@ test("el modo BCI revela el ground truth después de clasificar", async ({ page 
   await expect(page.getByTestId("classification-result")).toContainText(/Mover|Reposo/);
   await expect(page.getByTestId("ground-truth")).toContainText(/CORRECTA|NO COINCIDE/);
 });
+
+test("la zona del cuerpo hace oscilar la onda EEG correspondiente", async ({ page }) => {
+  await page.getByTestId("task-RIGHT_HAND").hover();
+  await expect(page.getByTestId("scope-hint")).toContainText("C3 oscila");
+  await page.getByTestId("task-LEFT_HAND").hover();
+  await expect(page.getByTestId("scope-hint")).toContainText("C4 oscila");
+  await page.getByTestId("task-FEET").hover();
+  await expect(page.getByTestId("scope-hint")).toContainText("Cz oscila");
+});

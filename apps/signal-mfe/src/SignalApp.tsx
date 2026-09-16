@@ -3,6 +3,7 @@ import {
   EVENT_NAMES,
   SAMPLE_RATE_HZ,
   WINDOW_DURATION_MS,
+  motorTaskWaveHint,
   publish,
   setLastCalibrationWindow,
   subscribe,
@@ -45,6 +46,7 @@ export default function SignalApp() {
   const [calibrated, setCalibrated] = useState(false);
   const [features, setFeatures] = useState<EEGFeatures>(emptyEegFeatures());
   const [liveTask, setLiveTask] = useState<MotorTask>("REST");
+  const [focusedTask, setFocusedTask] = useState<MotorTask | null>(null);
   const pausedRef = useRef(false);
   const rawRef = useRef<EEGWindow | null>(null);
   const filteredRef = useRef<EEGWindow | null>(null);
@@ -134,6 +136,10 @@ export default function SignalApp() {
       subscribe(EVENT_NAMES.APP_MODE_CHANGED, (payload) => {
         setMode(payload.mode);
         setLiveTask("REST");
+        setFocusedTask(null);
+      }),
+      subscribe(EVENT_NAMES.MOTOR_ZONE_FOCUSED, (payload) => {
+        setFocusedTask(payload.task);
       }),
       subscribe(EVENT_NAMES.MOTOR_TASK_SELECTED, (payload) => {
         if (modeRef.current === "EXPLORE") {
@@ -196,7 +202,10 @@ export default function SignalApp() {
             Recalibrar
           </button>
         </div>
-        <Oscilloscope task={liveTask} paused={paused} viewLabel={view} />
+        <Oscilloscope task={focusedTask ?? liveTask} paused={paused} viewLabel={view} />
+        <p className={styles.liveHint} data-testid="scope-hint">
+          {motorTaskWaveHint(focusedTask ?? liveTask)}
+        </p>
         <p className={styles.caption}>Unidades sintéticas (µV simulados). Fuente actual: SyntheticEEGSource. No hay hardware conectado.</p>
       </div>
       <aside className={styles.side}>

@@ -7,6 +7,7 @@ interface BodyFigureProps {
   task: MotorTask | null;
   disabled: boolean;
   onSelect: (task: MotorTask) => void;
+  onFocus?: (task: MotorTask | null) => void;
 }
 
 interface Region {
@@ -67,7 +68,7 @@ const REGIONS: Region[] = [
   },
 ];
 
-export function BodyFigure({ task, disabled, onSelect }: BodyFigureProps) {
+export function BodyFigure({ task, disabled, onSelect, onFocus }: BodyFigureProps) {
   const activate = (next: MotorTask) => {
     if (!disabled) onSelect(next);
   };
@@ -104,6 +105,12 @@ export function BodyFigure({ task, disabled, onSelect }: BodyFigureProps) {
             aria-label={region.aria}
             onClick={() => activate(region.task)}
             onKeyDown={onKey(region.task)}
+            onPointerEnter={() => {
+              if (!disabled) onFocus?.(region.task);
+            }}
+            onPointerLeave={() => {
+              if (!disabled) onFocus?.(null);
+            }}
           >
             {region.shapes.map((shape) => (
               <ellipse key={`${shape.cx}-${shape.cy}`} cx={shape.cx} cy={shape.cy} rx={shape.rx} ry={shape.ry} />

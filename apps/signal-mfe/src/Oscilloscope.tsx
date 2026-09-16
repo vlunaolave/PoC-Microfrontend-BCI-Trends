@@ -1,5 +1,13 @@
 import { useEffect, useRef } from "react";
-import { EEG_CHANNELS, SAMPLE_RATE_HZ, type EEGChannel, type MotorTask } from "@neuromfe/contracts";
+import {
+  CHANNEL_BODY_HINTS,
+  CHANNEL_LABELS,
+  EEG_CHANNELS,
+  SAMPLE_RATE_HZ,
+  channelsForMotorTask,
+  type EEGChannel,
+  type MotorTask,
+} from "@neuromfe/contracts";
 import { LiveEEGStream } from "@neuromfe/dsp";
 import styles from "./signal.module.css";
 
@@ -10,9 +18,9 @@ const COLORS: Record<EEGChannel, string> = {
 };
 
 const GLOWS: Record<EEGChannel, string> = {
-  C3: "rgba(78, 198, 232, 0.28)",
-  CZ: "rgba(126, 224, 197, 0.28)",
-  C4: "rgba(107, 164, 248, 0.28)",
+  C3: "rgba(78, 198, 232, 0.45)",
+  CZ: "rgba(126, 224, 197, 0.45)",
+  C4: "rgba(107, 164, 248, 0.45)",
 };
 
 interface OscilloscopeProps {
@@ -77,9 +85,14 @@ export function Oscilloscope({ task, paused, viewLabel }: OscilloscopeProps) {
       context.fillStyle = "#0b1118";
       context.fillRect(0, 0, width, height);
 
+      const linked = new Set(channelsForMotorTask(taskRef.current));
+      const focusing = linked.size > 0;
       const rowHeight = height / EEG_CHANNELS.length;
+
       EEG_CHANNELS.forEach((channel, index) => {
         const top = rowHeight * index;
+        const active = !focusing || linked.has(channel);
+        context.globalAlpha = active ? 1 : 0.28;
         context.strokeStyle = "rgba(255,255,255,0.05)";
         context.lineWidth = 1;
         for (let g = 1; g < 6; g += 1) {
@@ -95,13 +108,21 @@ export function Oscilloscope({ task, paused, viewLabel }: OscilloscopeProps) {
         context.strokeStyle = "rgba(255,255,255,0.12)";
         context.stroke();
 
+        if (active && focusing) {
+          context.fillStyle = GLOWS[channel];
+          context.globalAlpha = 0.12;
+          context.fillRect(0, top, width, rowHeight);
+          context.globalAlpha = 1;
+        }
+
         const samples = buffersRef.current[channel];
         if (samples.length > 1) {
+          const scale = active && focusing ? 0.58 : 0.28;
           const plot = (widthScale: number, color: string) => {
             context.beginPath();
             samples.forEach((sample, sampleIndex) => {
               const x = (sampleIndex / Math.max(samples.length - 1, 1)) * width;
-              const y = top + rowHeight / 2 - (sample / 48) * (rowHeight * 0.4);
+              const y = top + rowHeight / 2 - (sample / 86) * (rowHeight * scale);
               if (sampleIndex === 0) context.moveTo(x, y);
               else context.lineTo(x, y);
             });
@@ -111,17 +132,24 @@ export function Oscilloscope({ task, paused, viewLabel }: OscilloscopeProps) {
             context.lineCap = "round";
             context.stroke();
           };
-          context.save();
-          context.shadowColor = GLOWS[channel];
-          context.shadowBlur = 10 * dpr;
-          plot(3.1, GLOWS[channel]);
-          context.restore();
-          plot(1.55, COLORS[channel]);
+          if (active) {
+            context.save();
+            context.shadowColor = GLOWS[channel];
+            context.shadowBlur = (focusing ? 18 : 8) * dpr;
+            plot(focusing ? 4.6 : 2.4, GLOWS[channel]);
+            context.restore();
+            plot(focusing ? 2.4 : 1.4, COLORS[channel]);
+          } else {
+            plot(1, COLORS[channel]);
+          }
         }
 
+        context.globalAlpha = 1;
         context.fillStyle = COLORS[channel];
-        context.font = `${11 * dpr}px Segoe UI, sans-serif`;
-        context.fillText(channel === "CZ" ? "Cz" : channel, 10 * dpr, top + 16 * dpr);
+        context.font = `${(active && focusing ? 13 : 11) * dpr}px Segoe UI, sans-serif`;
+        const label = CHANNEL_LABELS[channel];
+        const body = CHANNEL_BODY_HINTS[channel];
+        context.fillText(active && focusing ? `${label} · OSCILA · ${body}` : `${label} · ${body}`, 10 * dpr, top + 16 * dpr);
       });
 
       const sweepX = width - 3 * dpr;

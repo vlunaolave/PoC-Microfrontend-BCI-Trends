@@ -99,3 +99,27 @@ export const CHANNEL_LABELS: Record<EEGChannel, string> = {
   CZ: "Cz",
   C4: "C4",
 };
+
+export function channelsForMotorTask(task: MotorTask | null): readonly EEGChannel[] {
+  if (task === "RIGHT_HAND" || task === "RIGHT_ARM") return ["C3"];
+  if (task === "LEFT_HAND" || task === "LEFT_ARM") return ["C4"];
+  if (task === "FEET") return ["CZ"];
+  if (task === "TONGUE") return ["C3", "CZ", "C4"];
+  return [];
+}
+
+export const CHANNEL_BODY_HINTS: Record<EEGChannel, string> = {
+  C3: "mano/brazo der.",
+  CZ: "pies",
+  C4: "mano/brazo izq.",
+};
+
+export function motorTaskWaveHint(task: MotorTask | null): string {
+  if (task === "RIGHT_HAND") return "Mano derecha → la onda de C3 oscila";
+  if (task === "RIGHT_ARM") return "Brazo derecho → la onda de C3 oscila";
+  if (task === "LEFT_HAND") return "Mano izquierda → la onda de C4 oscila";
+  if (task === "LEFT_ARM") return "Brazo izquierdo → la onda de C4 oscila";
+  if (task === "FEET") return "Pies / piernas → la onda de Cz oscila";
+  if (task === "TONGUE") return "Lengua / cara → C3, Cz y C4 oscilan juntas";
+  return "Reposo → las tres ondas en baseline";
+}

@@ -16,10 +16,12 @@ const VERSION = "1.0.0";
 export default function BrainApp() {
   const [mode, setMode] = useState<AppMode>("EXPLORE");
   const [highlight, setHighlight] = useState<MotorTask | null>(null);
+  const [focused, setFocused] = useState<MotorTask | null>(null);
   const [prediction, setPrediction] = useState<MotorTask | null>(null);
   const [actual, setActual] = useState<MotorTask | null>(null);
   const [detecting, setDetecting] = useState(false);
   const modeRef = useRef(mode);
+  const activeTask = focused ?? highlight;
 
   useEffect(() => {
     modeRef.current = mode;
@@ -31,9 +33,14 @@ export default function BrainApp() {
       subscribe(EVENT_NAMES.APP_MODE_CHANGED, (payload) => {
         setMode(payload.mode);
         setHighlight(null);
+        setFocused(null);
         setPrediction(null);
         setActual(null);
         setDetecting(false);
+      }),
+      subscribe(EVENT_NAMES.MOTOR_ZONE_FOCUSED, (payload) => {
+        if (modeRef.current === "BCI") return;
+        setFocused(payload.task);
       }),
       subscribe(EVENT_NAMES.MOTOR_TASK_SELECTED, (payload) => {
         if (modeRef.current === "BCI") return;
@@ -73,13 +80,13 @@ export default function BrainApp() {
         <div className={styles.status} data-testid="brain-status">
           {detecting
             ? "Actividad cortical simulada detectándose..."
-            : highlight
-              ? `Zona asociada: ${MOTOR_TASK_LABELS[highlight]}`
+            : activeTask
+              ? `Zona asociada: ${MOTOR_TASK_LABELS[activeTask]}`
               : "Vista lateral izquierda educativa"}
         </div>
       </header>
       <div className={styles.figureWrap}>
-        <BrainFigure task={highlight} />
+        <BrainFigure task={activeTask} />
       </div>
       <div className={styles.legend}>
         <span title={TIPS.F3}>F3 · frontal</span>
