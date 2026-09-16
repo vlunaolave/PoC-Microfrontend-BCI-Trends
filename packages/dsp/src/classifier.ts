@@ -1,14 +1,14 @@
-import type { ClassificationResult, EEGChannel, EEGFeatures, MotorTask } from "@neuromfe/contracts";
+import type { ClassificationResult, MotorChannel, EEGFeatures, MotorTask } from "@neuromfe/contracts";
 import { MAX_CONFIDENCE, MIN_CONFIDENCE, MOVEMENT_THRESHOLD } from "./constants";
 import { clamp } from "./math";
 
 export interface ChannelScore {
-  channel: EEGChannel;
+  channel: MotorChannel;
   task: MotorTask;
   score: number;
 }
 
-function combinedSuppression(features: EEGFeatures, channel: EEGChannel): number {
+function combinedSuppression(features: EEGFeatures, channel: MotorChannel): number {
   const channelFeatures = features[channel];
   return 0.6 * channelFeatures.muSuppression + 0.4 * channelFeatures.betaSuppression;
 }
@@ -25,7 +25,7 @@ const HAND_SCORE = 0.78;
 const TONGUE_SPREAD = 0.16;
 const TONGUE_FLOOR = 0.28;
 
-function lateralTask(channel: EEGChannel, score: number): MotorTask {
+function lateralTask(channel: MotorChannel, score: number): MotorTask {
   if (channel === "C3") return score >= HAND_SCORE ? "RIGHT_HAND" : "RIGHT_ARM";
   if (channel === "C4") return score >= HAND_SCORE ? "LEFT_HAND" : "LEFT_ARM";
   return "FEET";

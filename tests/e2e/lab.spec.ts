@@ -47,9 +47,20 @@ test("el modo BCI revela el ground truth después de clasificar", async ({ page 
 
 test("la zona del cuerpo hace oscilar la onda EEG correspondiente", async ({ page }) => {
   await page.getByTestId("task-RIGHT_HAND").hover();
-  await expect(page.getByTestId("scope-hint")).toContainText("C3 oscila");
+  await expect(page.getByTestId("scope-hint")).toContainText("C3");
   await page.getByTestId("task-LEFT_HAND").hover();
   await expect(page.getByTestId("scope-hint")).toContainText("C4 oscila");
   await page.getByTestId("task-FEET").hover();
-  await expect(page.getByTestId("scope-hint")).toContainText("Cz oscila");
+  await expect(page.getByTestId("scope-hint")).toContainText("Cz");
+});
+
+test("el osciloscopio muestra el montaje 10-20 completo", async ({ page }) => {
+  const montage = page.getByTestId("scope-montage");
+  for (const label of ["Fp1", "F3", "Fz", "C3", "Cz", "C4", "T3", "P3", "Pz", "O1"]) {
+    await expect(montage).toContainText(label);
+  }
+  await page.getByTestId("task-TONGUE").hover();
+  await expect(page.getByTestId("scope-hint")).toContainText("Fp1");
+  await expect(page.getByTestId("scope-channel-FP1")).toHaveAttribute("data-active", "true");
+  await expect(page.getByTestId("scope-channel-O1")).toHaveAttribute("data-active", "false");
 });

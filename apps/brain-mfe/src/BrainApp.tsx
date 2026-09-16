@@ -89,11 +89,15 @@ export default function BrainApp() {
         <BrainFigure task={activeTask} />
       </div>
       <div className={styles.legend}>
+        <span title={TIPS.Fp1}>Fp1 · polar</span>
         <span title={TIPS.F3}>F3 · frontal</span>
+        <span title={TIPS.Fz}>Fz · medial</span>
         <span title={TIPS.C3}>C3 · mano/brazo der.</span>
         <span title={TIPS.Cz}>Cz · pies</span>
         <span title={TIPS.C4}>C4 · mano/brazo izq.</span>
+        <span title={TIPS.T3}>T3 · temporal</span>
         <span title={TIPS.P3}>P3 · parietal</span>
+        <span title={TIPS.Pz}>Pz · parietal med.</span>
         <span title={TIPS.O1}>O1 · occipital</span>
       </div>
       {prediction && actual ? (

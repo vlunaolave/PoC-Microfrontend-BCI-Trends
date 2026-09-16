@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  CHANNEL_LABELS,
+  EEG_CHANNELS,
   EVENT_NAMES,
+  MOTOR_CHANNELS,
   SAMPLE_RATE_HZ,
   WINDOW_DURATION_MS,
   motorTaskWaveHint,
@@ -186,7 +189,7 @@ export default function SignalApp() {
           <div className={styles.meta}>
             <span>Sample Rate: {SAMPLE_RATE_HZ} Hz</span>
             <span>Window: {(WINDOW_DURATION_MS / 1000).toFixed(1)} s</span>
-            <span>Channels: 3</span>
+            <span>Channels: {EEG_CHANNELS.length}</span>
           </div>
         </div>
         <div className={styles.actions}>
@@ -206,27 +209,21 @@ export default function SignalApp() {
           </button>
         </div>
         <Oscilloscope task={focusedTask ?? liveTask} paused={paused} viewLabel={view} />
-        <p className={styles.caption}>Unidades sintéticas (µV simulados). Fuente actual: SyntheticEEGSource. No hay hardware conectado.</p>
+        <p className={styles.caption}>Montaje 10-20 simulado (Fp1–O1). El clasificador motor usa C3, Cz y C4. Unidades sintéticas; no hay hardware conectado.</p>
       </div>
       <aside className={styles.side}>
         <div className={styles.card}>
-          <p className={styles.kicker}>Baseline EEG</p>
-          <div className={styles.calRow}>
-            <span>C3</span>
-            <span className={calibrated ? styles.ok : undefined}>{calibrated ? "✓" : "…"}</span>
-          </div>
-          <div className={styles.calRow}>
-            <span>Cz</span>
-            <span className={calibrated ? styles.ok : undefined}>{calibrated ? "✓" : "…"}</span>
-          </div>
-          <div className={styles.calRow}>
-            <span>C4</span>
-            <span className={calibrated ? styles.ok : undefined}>{calibrated ? "✓" : "…"}</span>
-          </div>
+          <p className={styles.kicker}>Baseline 10-20</p>
+          {EEG_CHANNELS.map((channel) => (
+            <div className={styles.calRow} key={channel}>
+              <span>{CHANNEL_LABELS[channel]}</span>
+              <span className={calibrated ? styles.ok : undefined}>{calibrated ? "✓" : "…"}</span>
+            </div>
+          ))}
           <p className={styles.caption}>Estado: {calibrated ? "Calibrado" : "Calibrando señal de reposo..."}</p>
         </div>
         <div className={styles.card}>
-          <p className={styles.kicker}>Bandas</p>
+          <p className={styles.kicker}>Bandas motoras</p>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -241,12 +238,12 @@ export default function SignalApp() {
               </tr>
             </thead>
             <tbody>
-              {(["C3", "CZ", "C4"] as const).map((channel) => {
+              {MOTOR_CHANNELS.map((channel) => {
                 const row = features[channel];
                 const suppression = 0.6 * row.muSuppression + 0.4 * row.betaSuppression;
                 return (
                   <tr key={channel}>
-                    <td>{channel === "CZ" ? "Cz" : channel}</td>
+                    <td>{CHANNEL_LABELS[channel]}</td>
                     <td>{formatPower(row.muPower)}</td>
                     <td>{formatPower(row.betaPower)}</td>
                     <td>{formatPct(suppression)}</td>

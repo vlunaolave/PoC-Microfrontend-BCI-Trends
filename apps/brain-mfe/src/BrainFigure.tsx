@@ -37,8 +37,8 @@ const SITES: Site[] = [
   { id: "C3", x: 410, y: 248, labelX: 348, labelY: 290, tip: "Electrodo EEG aproximado sobre región sensoriomotora izquierda.", activeFor: ["RIGHT_HAND", "RIGHT_ARM"], fill: "#7c8cff" },
   { id: "Cz", x: 528, y: 92, labelX: 548, labelY: 64, tip: "Vértice / región medial, asociada a pies.", activeFor: ["FEET"], fill: "#67d4c4" },
   { id: "C4", x: 628, y: 168, labelX: 652, labelY: 148, tip: "Sensoriomotor derecho, marcado de forma esquemática en esta vista.", activeFor: ["LEFT_HAND", "LEFT_ARM"], fill: "#b07cff" },
-  { id: "T3", x: 356, y: 430, labelX: 286, labelY: 470, tip: "Temporal izquierdo, aproximación educativa.", activeFor: [], fill: "#8aa0b5" },
-  { id: "P3", x: 690, y: 300, labelX: 718, labelY: 338, tip: "Parietal izquierdo.", activeFor: [], fill: "#6ba4f8" },
+  { id: "T3", x: 356, y: 430, labelX: 286, labelY: 470, tip: "Temporal izquierdo, aproximación educativa.", activeFor: ["TONGUE"], fill: "#8aa0b5" },
+  { id: "P3", x: 690, y: 300, labelX: 718, labelY: 338, tip: "Parietal izquierdo.", activeFor: ["RIGHT_HAND"], fill: "#6ba4f8" },
   { id: "Pz", x: 742, y: 150, labelX: 770, labelY: 130, tip: "Parietal medial.", activeFor: ["FEET"], fill: "#67d4c4" },
   { id: "O1", x: 880, y: 330, labelX: 900, labelY: 372, tip: "Occipital izquierdo.", activeFor: [], fill: "#9aa8b6" },
 ];

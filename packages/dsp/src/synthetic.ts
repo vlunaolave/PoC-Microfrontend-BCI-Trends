@@ -1,6 +1,7 @@
-import type { EEGChannel, EEGSource, EEGWindow, MotorTask } from "@neuromfe/contracts";
+import type { EEGChannel, EEGSource, EEGWindow, MotorChannel, MotorTask } from "@neuromfe/contracts";
 import {
   EEG_CHANNELS,
+  MOTOR_CHANNELS,
   SAMPLE_RATE_HZ,
   SAMPLES_PER_WINDOW,
   WINDOW_DURATION_MS,
@@ -13,13 +14,13 @@ export interface AmplitudeProfile {
   beta: number;
 }
 
-const REST_PROFILE: Record<EEGChannel, AmplitudeProfile> = {
+const MOTOR_REST: Record<MotorChannel, AmplitudeProfile> = {
   C3: { mu: 1, beta: 0.55 },
   CZ: { mu: 1, beta: 0.55 },
   C4: { mu: 1, beta: 0.55 },
 };
 
-function taskProfiles(task: MotorTask): Record<EEGChannel, AmplitudeProfile> {
+function taskProfiles(task: MotorTask): Record<MotorChannel, AmplitudeProfile> {
   if (task === "RIGHT_HAND") {
     return {
       C3: { mu: 0.22, beta: 0.16 },
@@ -62,22 +63,30 @@ function taskProfiles(task: MotorTask): Record<EEGChannel, AmplitudeProfile> {
       C4: { mu: 0.52, beta: 0.46 },
     };
   }
-  return REST_PROFILE;
+  return MOTOR_REST;
+}
+
+function fillLive(base: AmplitudeProfile, bumps: Partial<Record<EEGChannel, AmplitudeProfile>> = {}): Record<EEGChannel, AmplitudeProfile> {
+  const profiles = {} as Record<EEGChannel, AmplitudeProfile>;
+  for (const channel of EEG_CHANNELS) {
+    profiles[channel] = bumps[channel] ?? base;
+  }
+  return profiles;
 }
 
 function liveDisplayProfiles(task: MotorTask): Record<EEGChannel, AmplitudeProfile> {
   const quiet = { mu: 0.08, beta: 0.04 };
-  const idle = { mu: 0.48, beta: 0.24 };
-  const strong = { mu: 3.6, beta: 1.9 };
-  const medium = { mu: 2.25, beta: 1.2 };
-  const bilateral = { mu: 2.05, beta: 1.1 };
-  if (task === "RIGHT_HAND") return { C3: strong, CZ: quiet, C4: quiet };
-  if (task === "RIGHT_ARM") return { C3: medium, CZ: quiet, C4: quiet };
-  if (task === "LEFT_HAND") return { C3: quiet, CZ: quiet, C4: strong };
-  if (task === "LEFT_ARM") return { C3: quiet, CZ: quiet, C4: medium };
-  if (task === "FEET") return { C3: quiet, CZ: strong, C4: quiet };
-  if (task === "TONGUE") return { C3: bilateral, CZ: medium, C4: bilateral };
-  return { C3: idle, CZ: idle, C4: idle };
+  const idle = { mu: 0.42, beta: 0.2 };
+  const strong = { mu: 3.4, beta: 1.8 };
+  const medium = { mu: 2.15, beta: 1.12 };
+  if (task === "REST") return fillLive(idle);
+  const amplitude = task === "RIGHT_ARM" || task === "LEFT_ARM" ? medium : strong;
+  const bumps: Partial<Record<EEGChannel, AmplitudeProfile>> = {};
+  for (const channel of channelsForMotorTask(task)) {
+    bumps[channel] = amplitude;
+  }
+  if (task === "RIGHT_HAND") bumps.P3 = medium;
+  return fillLive(quiet, bumps);
 }
 
 function generateChannel(
@@ -113,7 +122,7 @@ export function generateSyntheticWindow(task: MotorTask, seed: number, trialId: 
     trialId,
     sampleRate: SAMPLE_RATE_HZ,
     durationMs: WINDOW_DURATION_MS,
-    channels: EEG_CHANNELS.map((channel) => ({
+    channels: MOTOR_CHANNELS.map((channel) => ({
       channel,
       samples: generateChannel(channel, profiles[channel], rng),
     })),
@@ -161,7 +170,7 @@ export class LiveEEGStream {
   private time = 0;
   private task: MotorTask = "REST";
   private oscillators: Record<EEGChannel, ChannelOscillator>;
-  private target: Record<EEGChannel, AmplitudeProfile> = { ...REST_PROFILE };
+  private target: Record<EEGChannel, AmplitudeProfile> = liveDisplayProfiles("REST");
 
   constructor(seed = 2026) {
     const rng = createRng(seed);
@@ -172,10 +181,13 @@ export class LiveEEGStream {
       mainsPhase: rng() * Math.PI * 2,
       muFreq: 9.4 + rng() * 1.4,
       betaFreq: 18.5 + rng() * 3,
-      mu: REST_PROFILE.C3.mu,
-      beta: REST_PROFILE.C3.beta,
+      mu: 0.42,
+      beta: 0.2,
     });
-    this.oscillators = { C3: make(), CZ: make(), C4: make() };
+    this.oscillators = {} as Record<EEGChannel, ChannelOscillator>;
+    for (const channel of EEG_CHANNELS) {
+      this.oscillators[channel] = make();
+    }
   }
 
   setTask(task: MotorTask): void {
@@ -192,6 +204,7 @@ export class LiveEEGStream {
       for (const channel of EEG_CHANNELS) {
         const osc = this.oscillators[channel];
         const target = this.target[channel];
+        if (!osc || !target) continue;
         osc.mu += (target.mu - osc.mu) * 0.18;
         osc.beta += (target.beta - osc.beta) * 0.18;
         const wander = 0.25 * Math.sin(2 * Math.PI * 0.18 * this.time + osc.driftPhase);
@@ -206,7 +219,7 @@ export class LiveEEGStream {
         const mains = filtered ? 0 : 1.1 * Math.sin(osc.mainsPhase);
         const noise = (Math.sin(this.time * 37.1 + osc.muPhase) * 0.7 + Math.sin(this.time * 53.3 + osc.betaPhase)) * (filtered ? 0.35 : 0.9);
         const sample = mu + beta + drift + mains + noise;
-        const buffer = buffers[channel];
+        const buffer = buffers[channel] ?? (buffers[channel] = []);
         buffer.push(sample);
         if (buffer.length > maxLength) {
           buffer.splice(0, buffer.length - maxLength);

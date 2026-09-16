@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SAMPLE_RATE_HZ, type MotorTask } from "@neuromfe/contracts";
+import { SAMPLE_RATE_HZ, emptyChannelBuffers, type MotorTask } from "@neuromfe/contracts";
 import { classifyMotorImagery } from "./classifier";
 import { extractFeatures } from "./features";
 import { bandpassFilter } from "./filter";
@@ -83,7 +83,7 @@ describe("live EEG stream follows the body zone", () => {
   function capture(task: MotorTask) {
     const stream = new LiveEEGStream(7);
     stream.setTask(task);
-    const buffers: Record<"C3" | "CZ" | "C4", number[]> = { C3: [], CZ: [], C4: [] };
+    const buffers = emptyChannelBuffers();
     stream.push(500, buffers, true);
     buffers.C3.length = 0;
     buffers.CZ.length = 0;
@@ -108,5 +108,35 @@ describe("live EEG stream follows the body zone", () => {
     const energy = capture("FEET");
     expect(energy.CZ).toBeGreaterThan(energy.C3 * 4);
     expect(energy.CZ).toBeGreaterThan(energy.C4 * 4);
+  });
+
+  it("TONGUE boosts frontal sites and leaves O1 quiet", () => {
+    const stream = new LiveEEGStream(7);
+    stream.setTask("TONGUE");
+    const buffers = emptyChannelBuffers();
+    stream.push(500, buffers, true);
+    for (const channel of Object.keys(buffers) as Array<keyof typeof buffers>) {
+      buffers[channel].length = 0;
+    }
+    stream.push(600, buffers, true);
+    const rms = (samples: number[]) => Math.sqrt(samples.reduce((sum, value) => sum + value * value, 0) / Math.max(samples.length, 1));
+    expect(rms(buffers.FP1)).toBeGreaterThan(rms(buffers.O1) * 4);
+    expect(rms(buffers.F3)).toBeGreaterThan(rms(buffers.O1) * 4);
+    expect(rms(buffers.T3)).toBeGreaterThan(rms(buffers.O1) * 4);
+    expect(rms(buffers.C3)).toBeLessThan(rms(buffers.FP1));
+  });
+
+  it("FEET also boosts Pz alongside Cz", () => {
+    const stream = new LiveEEGStream(7);
+    stream.setTask("FEET");
+    const buffers = emptyChannelBuffers();
+    stream.push(500, buffers, true);
+    for (const channel of Object.keys(buffers) as Array<keyof typeof buffers>) {
+      buffers[channel].length = 0;
+    }
+    stream.push(600, buffers, true);
+    const rms = (samples: number[]) => Math.sqrt(samples.reduce((sum, value) => sum + value * value, 0) / Math.max(samples.length, 1));
+    expect(rms(buffers.PZ)).toBeGreaterThan(rms(buffers.O1) * 4);
+    expect(rms(buffers.CZ)).toBeGreaterThan(rms(buffers.O1) * 4);
   });
 });

@@ -9,13 +9,36 @@ export type MotorTask =
   | "FEET"
   | "TONGUE";
 
-export type EEGChannel = "C3" | "CZ" | "C4";
+export type MotorChannel = "C3" | "CZ" | "C4";
+
+export type EEGChannel =
+  | "FP1"
+  | "F3"
+  | "FZ"
+  | MotorChannel
+  | "T3"
+  | "P3"
+  | "PZ"
+  | "O1";
 
 export type MfeId = "shell" | "body-mfe" | "brain-mfe" | "signal-mfe" | "decoder-mfe";
 
 export type MfeStatus = "LOADING" | "ONLINE" | "ERROR";
 
-export const EEG_CHANNELS: readonly EEGChannel[] = ["C3", "CZ", "C4"];
+export const MOTOR_CHANNELS: readonly MotorChannel[] = ["C3", "CZ", "C4"];
+
+export const EEG_CHANNELS: readonly EEGChannel[] = [
+  "FP1",
+  "F3",
+  "FZ",
+  "C3",
+  "CZ",
+  "C4",
+  "T3",
+  "P3",
+  "PZ",
+  "O1",
+];
 
 export const MOTOR_TASKS: readonly MotorTask[] = [
   "REST",
@@ -65,7 +88,7 @@ export interface ClassificationResult {
   trialId: string;
   predictedTask: MotorTask;
   confidence: number;
-  dominantChannel: EEGChannel | null;
+  dominantChannel: MotorChannel | null;
   features: EEGFeatures;
 }
 
@@ -95,31 +118,61 @@ export const MOTOR_TASK_COMMANDS: Record<MotorTask, string> = {
 };
 
 export const CHANNEL_LABELS: Record<EEGChannel, string> = {
+  FP1: "Fp1",
+  F3: "F3",
+  FZ: "Fz",
   C3: "C3",
   CZ: "Cz",
   C4: "C4",
+  T3: "T3",
+  P3: "P3",
+  PZ: "Pz",
+  O1: "O1",
 };
 
 export function channelsForMotorTask(task: MotorTask | null): readonly EEGChannel[] {
-  if (task === "RIGHT_HAND" || task === "RIGHT_ARM") return ["C3"];
+  if (task === "RIGHT_HAND") return ["C3", "P3"];
+  if (task === "RIGHT_ARM") return ["C3", "F3"];
   if (task === "LEFT_HAND" || task === "LEFT_ARM") return ["C4"];
-  if (task === "FEET") return ["CZ"];
-  if (task === "TONGUE") return ["C3", "CZ", "C4"];
+  if (task === "FEET") return ["CZ", "PZ"];
+  if (task === "TONGUE") return ["FP1", "F3", "FZ", "T3"];
   return [];
 }
 
 export const CHANNEL_BODY_HINTS: Record<EEGChannel, string> = {
+  FP1: "frontal polar",
+  F3: "frontal",
+  FZ: "frontal medial",
   C3: "mano/brazo der.",
   CZ: "pies",
   C4: "mano/brazo izq.",
+  T3: "temporal",
+  P3: "parietal",
+  PZ: "parietal medial",
+  O1: "occipital",
 };
 
+export function emptyChannelBuffers(): Record<EEGChannel, number[]> {
+  return {
+    FP1: [],
+    F3: [],
+    FZ: [],
+    C3: [],
+    CZ: [],
+    C4: [],
+    T3: [],
+    P3: [],
+    PZ: [],
+    O1: [],
+  };
+}
+
 export function motorTaskWaveHint(task: MotorTask | null): string {
-  if (task === "RIGHT_HAND") return "Mano derecha → la onda de C3 oscila";
-  if (task === "RIGHT_ARM") return "Brazo derecho → la onda de C3 oscila";
-  if (task === "LEFT_HAND") return "Mano izquierda → la onda de C4 oscila";
-  if (task === "LEFT_ARM") return "Brazo izquierdo → la onda de C4 oscila";
-  if (task === "FEET") return "Pies / piernas → la onda de Cz oscila";
-  if (task === "TONGUE") return "Lengua / cara → C3, Cz y C4 oscilan juntas";
-  return "Reposo → las tres ondas en baseline";
+  if (task === "RIGHT_HAND") return "Mano derecha → C3 y P3 oscilan";
+  if (task === "RIGHT_ARM") return "Brazo derecho → C3 y F3 oscilan";
+  if (task === "LEFT_HAND") return "Mano izquierda → C4 oscila";
+  if (task === "LEFT_ARM") return "Brazo izquierdo → C4 oscila";
+  if (task === "FEET") return "Pies / piernas → Cz y Pz oscilan";
+  if (task === "TONGUE") return "Lengua / cara → Fp1, F3, Fz y T3 oscilan";
+  return "Reposo → las 10 derivaciones en baseline";
 }

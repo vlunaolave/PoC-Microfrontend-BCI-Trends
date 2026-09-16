@@ -40,7 +40,7 @@ const WHAT: Record<MotorTask, string[]> = {
   RIGHT_HAND: [
     "Se simula intención de mover la mano derecha.",
     "La actividad asociada se representa principalmente sobre la región sensoriomotora izquierda.",
-    "En el osciloscopio, la onda de C3 oscila con más amplitud.",
+    "En el osciloscopio, C3 y P3 oscilan; el resto del montaje 10-20 se queda quieto.",
     "El Decoder analiza la señal.",
     "El patrón se convierte en un comando.",
   ],
@@ -54,7 +54,7 @@ const WHAT: Record<MotorTask, string[]> = {
   RIGHT_ARM: [
     "Se simula intención de mover el brazo derecho.",
     "El homúnculo sitúa el brazo más medial que la mano, todavía en hemisferio izquierdo.",
-    "C3 oscila, pero menos que al imaginar la mano.",
+    "En el osciloscopio, C3 y F3 oscilan (sensoriomotor + premotor).",
     "El clasificador distingue mano frente a brazo por la intensidad del ERD.",
     "El comando resultante es mover el brazo derecho.",
   ],
@@ -67,14 +67,14 @@ const WHAT: Record<MotorTask, string[]> = {
   ],
   FEET: [
     "Se simula intención de mover los pies o las piernas.",
-    "En el osciloscopio, la onda de Cz oscila y C3/C4 se quedan quietas.",
+    "En el osciloscopio, Cz y Pz oscilan; C3/C4 y el resto se quedan quietos.",
     "C3 y C4 permanecen más cerca del baseline.",
     "El pipeline calcula características espectrales.",
     "El comando resultante es mover pies.",
   ],
   TONGUE: [
     "Se simula intención de mover la lengua o la cara.",
-    "C3, Cz y C4 oscilan juntas, de forma más bilateral.",
+    "En el osciloscopio, Fp1, F3, Fz y T3 oscilan (cara / habla). O1 permanece en baseline.",
     "Ningún canal motor destaca tanto como en mano o pies.",
     "El clasificador interpreta un patrón bilateral.",
     "El comando resultante es mover lengua / cara.",
