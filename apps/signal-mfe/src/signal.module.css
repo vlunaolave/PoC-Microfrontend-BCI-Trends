@@ -70,7 +70,7 @@
 .canvasWrap {
   position: relative;
   flex: 1 1 0;
-  min-height: 112px;
+  min-height: 168px;
   background: #0b1118;
   border: 1px solid var(--border);
   border-radius: 12px;

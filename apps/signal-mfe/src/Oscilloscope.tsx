@@ -92,6 +92,10 @@ export function Oscilloscope({ task, paused, viewLabel }: OscilloscopeProps) {
       EEG_CHANNELS.forEach((channel, index) => {
         const top = rowHeight * index;
         const active = !focusing || linked.has(channel);
+        context.save();
+        context.beginPath();
+        context.rect(0, top, width, rowHeight);
+        context.clip();
         context.globalAlpha = active ? 1 : 0.28;
         context.strokeStyle = "rgba(255,255,255,0.05)";
         context.lineWidth = 1;
@@ -117,12 +121,12 @@ export function Oscilloscope({ task, paused, viewLabel }: OscilloscopeProps) {
 
         const samples = buffersRef.current[channel];
         if (samples.length > 1) {
-          const scale = active && focusing ? 0.58 : 0.28;
+          const scale = active && focusing ? 0.46 : 0.26;
           const plot = (widthScale: number, color: string) => {
             context.beginPath();
             samples.forEach((sample, sampleIndex) => {
               const x = (sampleIndex / Math.max(samples.length - 1, 1)) * width;
-              const y = top + rowHeight / 2 - (sample / 86) * (rowHeight * scale);
+              const y = top + rowHeight / 2 - (sample / 92) * (rowHeight * scale);
               if (sampleIndex === 0) context.moveTo(x, y);
               else context.lineTo(x, y);
             });
@@ -135,10 +139,10 @@ export function Oscilloscope({ task, paused, viewLabel }: OscilloscopeProps) {
           if (active) {
             context.save();
             context.shadowColor = GLOWS[channel];
-            context.shadowBlur = (focusing ? 18 : 8) * dpr;
-            plot(focusing ? 4.6 : 2.4, GLOWS[channel]);
+            context.shadowBlur = (focusing ? 14 : 6) * dpr;
+            plot(focusing ? 3.6 : 2.2, GLOWS[channel]);
             context.restore();
-            plot(focusing ? 2.4 : 1.4, COLORS[channel]);
+            plot(focusing ? 2.1 : 1.35, COLORS[channel]);
           } else {
             plot(1, COLORS[channel]);
           }
@@ -150,6 +154,7 @@ export function Oscilloscope({ task, paused, viewLabel }: OscilloscopeProps) {
         const label = CHANNEL_LABELS[channel];
         const body = CHANNEL_BODY_HINTS[channel];
         context.fillText(active && focusing ? `${label} · OSCILA · ${body}` : `${label} · ${body}`, 10 * dpr, top + 16 * dpr);
+        context.restore();
       });
 
       const sweepX = width - 3 * dpr;

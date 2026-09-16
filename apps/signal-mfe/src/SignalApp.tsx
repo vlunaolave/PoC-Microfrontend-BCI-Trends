@@ -179,6 +179,9 @@ export default function SignalApp() {
           <div>
             <p className={styles.kicker}>Adquisición</p>
             <h2 className={styles.title}>Osciloscopio EEG simulado</h2>
+            <p className={styles.liveHint} data-testid="scope-hint">
+              {motorTaskWaveHint(focusedTask ?? liveTask)}
+            </p>
           </div>
           <div className={styles.meta}>
             <span>Sample Rate: {SAMPLE_RATE_HZ} Hz</span>
@@ -203,9 +206,6 @@ export default function SignalApp() {
           </button>
         </div>
         <Oscilloscope task={focusedTask ?? liveTask} paused={paused} viewLabel={view} />
-        <p className={styles.liveHint} data-testid="scope-hint">
-          {motorTaskWaveHint(focusedTask ?? liveTask)}
-        </p>
         <p className={styles.caption}>Unidades sintéticas (µV simulados). Fuente actual: SyntheticEEGSource. No hay hardware conectado.</p>
       </div>
       <aside className={styles.side}>
