@@ -8,6 +8,7 @@ import {
   type AppMode,
   type MotorTask,
 } from "@neuromfe/contracts";
+import { BodyFigure } from "./BodyFigure";
 import styles from "./body.module.css";
 
 const VERSION = "1.0.0";
@@ -59,64 +60,7 @@ export default function BodyApp() {
       </header>
 
       <div className={styles.figureWrap}>
-        <svg
-          className={styles.svg}
-          viewBox="0 0 260 420"
-          role="img"
-          aria-label="Silueta humana frontal. La mano derecha del sujeto está a la izquierda de la imagen."
-          data-disabled={disabled}
-        >
-          <title>Silueta humana educativa, vista frontal</title>
-          <ellipse className={styles.silhouette} cx="130" cy="46" rx="28" ry="32" />
-          <rect className={styles.silhouette} x="118" y="76" width="24" height="18" rx="6" />
-          <path
-            className={styles.silhouette}
-            d="M78 102h104c16 0 28 14 28 30v78c0 14-10 26-24 28l-8 108c-2 18-18 32-36 32h-24c-18 0-34-14-36-32l-8-108c-14-2-24-14-24-28v-78c0-16 12-30 28-30z"
-          />
-          <path className={styles.silhouette} d="M78 118c-22 18-38 22-52 18 2 28 18 38 40 42" />
-          <path className={styles.silhouette} d="M182 118c22 18 38 22 52 18-2 28-18 38-40 42" />
-          <circle
-            className={`${styles.region} ${task === "RIGHT_HAND" ? styles.regionActive : ""}`}
-            cx="28"
-            cy="168"
-            r="22"
-            tabIndex={disabled ? -1 : 0}
-            role="button"
-            aria-label="Seleccionar mano derecha"
-            onClick={() => !disabled && selectTask("RIGHT_HAND")}
-            onKeyDown={(event) => {
-              if (!disabled && (event.key === "Enter" || event.key === " ")) selectTask("RIGHT_HAND");
-            }}
-          />
-          <circle
-            className={`${styles.region} ${task === "LEFT_HAND" ? styles.regionActive : ""}`}
-            cx="232"
-            cy="168"
-            r="22"
-            tabIndex={disabled ? -1 : 0}
-            role="button"
-            aria-label="Seleccionar mano izquierda"
-            onClick={() => !disabled && selectTask("LEFT_HAND")}
-            onKeyDown={(event) => {
-              if (!disabled && (event.key === "Enter" || event.key === " ")) selectTask("LEFT_HAND");
-            }}
-          />
-          <rect
-            className={`${styles.region} ${task === "FEET" ? styles.regionActive : ""}`}
-            x="78"
-            y="372"
-            width="104"
-            height="32"
-            rx="12"
-            tabIndex={disabled ? -1 : 0}
-            role="button"
-            aria-label="Seleccionar pies"
-            onClick={() => !disabled && selectTask("FEET")}
-            onKeyDown={(event) => {
-              if (!disabled && (event.key === "Enter" || event.key === " ")) selectTask("FEET");
-            }}
-          />
-        </svg>
+        <BodyFigure task={task} disabled={disabled} onSelect={selectTask} />
       </div>
 
       <div className={styles.controls}>

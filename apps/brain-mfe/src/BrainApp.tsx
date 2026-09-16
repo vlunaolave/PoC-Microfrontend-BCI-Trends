@@ -8,15 +8,10 @@ import {
   type AppMode,
   type MotorTask,
 } from "@neuromfe/contracts";
+import { BrainFigure, TIPS } from "./BrainFigure";
 import styles from "./brain.module.css";
 
 const VERSION = "1.0.0";
-
-const TIPS = {
-  C3: "Electrodo EEG aproximado sobre región sensoriomotora izquierda.",
-  CZ: "Electrodo EEG aproximado sobre la línea media / región de pies.",
-  C4: "Electrodo EEG aproximado sobre región sensoriomotora derecha.",
-};
 
 function zoneForTask(task: MotorTask | null): "left" | "right" | "medial" | "none" {
   if (task === "RIGHT_HAND") return "left";
@@ -93,43 +88,7 @@ export default function BrainApp() {
         </div>
       </header>
       <div className={styles.figureWrap}>
-        <svg className={styles.svg} viewBox="0 0 420 240" role="img" aria-label="Vista superior esquemática del cerebro con electrodos C3, Cz y C4">
-          <title>Representación educativa del cerebro. No es un mapa médico exacto.</title>
-          <path
-            className={`${styles.hemisphere} ${zone === "left" ? styles.leftActive : ""}`}
-            d="M210 28c-28 8-92 18-132 52-28 24-42 58-36 92 8 42 54 58 118 62 18 1 34-8 40-22V40c-4-6-8-10-10-12z"
-          />
-          <path
-            className={`${styles.hemisphere} ${zone === "right" ? styles.rightActive : ""}`}
-            d="M210 28c28 8 92 18 132 52 28 24 42 58 36 92-8 42-54 58-118 62-18 1-34-8-40-22V40c4-6 8-10 10-12z"
-          />
-          <rect
-            className={`${styles.medial} ${zone === "medial" ? styles.medialActive : ""}`}
-            x="198"
-            y="42"
-            width="24"
-            height="148"
-            rx="10"
-          />
-          <circle className={styles.electrode} cx="132" cy="118" r="8">
-            <title>{TIPS.C3}</title>
-          </circle>
-          <circle className={styles.electrode} cx="210" cy="108" r="8">
-            <title>{TIPS.CZ}</title>
-          </circle>
-          <circle className={styles.electrode} cx="288" cy="118" r="8">
-            <title>{TIPS.C4}</title>
-          </circle>
-          <text className={styles.electrodeLabel} x="118" y="146">
-            C3
-          </text>
-          <text className={styles.electrodeLabel} x="201" y="96">
-            Cz
-          </text>
-          <text className={styles.electrodeLabel} x="278" y="146">
-            C4
-          </text>
-        </svg>
+        <BrainFigure zone={zone} />
       </div>
       <div className={styles.legend}>
         <span title={TIPS.C3}>C3 · hemisferio izquierdo</span>

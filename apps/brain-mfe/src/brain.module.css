@@ -44,44 +44,43 @@
 }
 
 .svg {
-  width: min(360px, 100%);
+  width: min(460px, 100%);
   height: auto;
-  max-height: 180px;
+  max-height: 230px;
 }
 
 .hemisphere {
-  fill: #2a3348;
-  stroke: #6d7aa8;
-  stroke-width: 1.5;
-  transition: fill 220ms ease, filter 220ms ease;
+  stroke: #5a343c;
+  stroke-width: 1.4;
+  transition: filter 220ms ease, opacity 220ms ease;
 }
 
 .leftActive {
-  fill: #4d63b8;
-  filter: drop-shadow(0 0 14px rgba(124, 140, 255, 0.6));
+  filter: drop-shadow(0 0 16px rgba(124, 140, 255, 0.55));
 }
 
 .rightActive {
-  fill: #6a4a9a;
-  filter: drop-shadow(0 0 14px rgba(176, 124, 255, 0.6));
+  filter: drop-shadow(0 0 16px rgba(176, 124, 255, 0.55));
 }
 
 .medial {
-  fill: #2c4a4a;
-  stroke: #67d4c4;
-  stroke-width: 1.2;
-  transition: fill 220ms ease, filter 220ms ease;
+  stroke: #3a2228;
+  stroke-width: 1;
+  transition: filter 220ms ease;
 }
 
 .medialActive {
-  fill: #3c6d66;
-  filter: drop-shadow(0 0 10px rgba(103, 212, 196, 0.45));
+  filter: drop-shadow(0 0 12px rgba(103, 212, 196, 0.55));
 }
 
 .electrode {
   fill: #0d141c;
   stroke: #d7e4ef;
   stroke-width: 2;
+}
+
+.cerebellum {
+  pointer-events: none;
 }
 
 .electrodeLabel {

@@ -55,32 +55,31 @@
 }
 
 .svg {
-  width: min(200px, 100%);
+  width: min(210px, 100%);
   height: auto;
-  max-height: 190px;
+  max-height: 280px;
 }
 
 .silhouette {
-  fill: #243140;
-  stroke: #4a6278;
-  stroke-width: 1.4;
+  fill: url(#skin);
 }
 
 .region {
   cursor: pointer;
-  fill: rgba(61, 184, 232, 0.12);
-  stroke: rgba(61, 184, 232, 0.55);
-  stroke-width: 1.5;
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 1.7;
   transition: fill 180ms ease, stroke 180ms ease, filter 180ms ease;
 }
 
 .region:hover,
 .region:focus-visible {
-  fill: rgba(61, 184, 232, 0.28);
+  fill: rgba(61, 184, 232, 0.2);
+  stroke: var(--accent);
 }
 
 .regionActive {
-  fill: rgba(61, 184, 232, 0.45);
+  fill: rgba(61, 184, 232, 0.3);
   stroke: var(--accent);
   filter: drop-shadow(0 0 8px rgba(61, 184, 232, 0.45));
 }
