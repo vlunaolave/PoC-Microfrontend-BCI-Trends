@@ -42,7 +42,11 @@ export class RemoteErrorBoundary extends Component<Props, State> {
         </div>
       );
     }
-    return <div key={this.state.retry}>{this.props.children}</div>;
+    return (
+      <div className={styles.remoteFill} key={this.state.retry}>
+        {this.props.children}
+      </div>
+    );
   }
 }
 
