@@ -267,52 +267,34 @@ export default function App() {
       </div>
 
       <div className={styles.bottom}>
-        <div className={styles.sideStack}>
-          <div className={styles.card}>
-            <h2>¿Qué está pasando?</h2>
-            <ol className={styles.steps}>
-              {explanation.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ol>
-            {architecture ? (
+        <div className={styles.card}>
+          <h2>¿Qué está pasando?</h2>
+          <ol className={styles.steps}>
+            {explanation.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ol>
+          {architecture ? (
+            <>
               <p className={styles.muted}>Body selecciona · Brain visualiza · Signal adquiere · Decoder clasifica.</p>
-            ) : null}
-          </div>
-          <div className={styles.card}>
-            <h2>Fuente de datos</h2>
-            <label className={styles.sourceItem} data-active="true" title="Esta PoC utiliza señales sintéticas. La arquitectura permite sustituir posteriormente la fuente de adquisición.">
-              <input type="radio" checked readOnly /> EEG simulado
-            </label>
-            <label className={`${styles.sourceItem} ${styles.disabled}`} title="Próximamente">
-              <input type="radio" disabled /> Dataset EEG · Próximamente
-            </label>
-            <label className={`${styles.sourceItem} ${styles.disabled}`} title="Próximamente">
-              <input type="radio" disabled /> Dispositivo EEG · Próximamente
-            </label>
-            {architecture ? (
-              <>
-                <h3>Micro Frontends</h3>
-                <div className={styles.statusList} data-testid="architecture-status">
-                  {MFE_META.map((item) => (
-                    <div key={item.id}>
-                      {item.label} · <span className={statusClass(status[item.id])}>{status[item.id]}</span>
-                    </div>
-                  ))}
-                </div>
-                <h3>Communication · Domain Events</h3>
-                <div className={styles.events} data-testid="event-monitor">
-                  {events.map((event, index) => (
-                    <div key={`${event.time}-${event.name}-${index}`}>
-                      {event.time} {eventLabel(event.name)} {event.summary}
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <p className={styles.muted}>Simulación educativa de Brain Computer Interface basada en patrones EEG sintéticos.</p>
-            )}
-          </div>
+              <h3>Micro Frontends</h3>
+              <div className={styles.statusList} data-testid="architecture-status">
+                {MFE_META.map((item) => (
+                  <div key={item.id}>
+                    {item.label} · <span className={statusClass(status[item.id])}>{status[item.id]}</span>
+                  </div>
+                ))}
+              </div>
+              <h3>Communication · Domain Events</h3>
+              <div className={styles.events} data-testid="event-monitor">
+                {events.map((event, index) => (
+                  <div key={`${event.time}-${event.name}-${index}`}>
+                    {event.time} {eventLabel(event.name)} {event.summary}
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : null}
         </div>
         {remoteSlot(
           "decoder-mfe",
