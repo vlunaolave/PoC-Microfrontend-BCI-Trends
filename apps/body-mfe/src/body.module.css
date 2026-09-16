@@ -55,9 +55,13 @@
 }
 
 .svg {
-  width: min(210px, 100%);
+  width: min(220px, 100%);
   height: auto;
-  max-height: 280px;
+  max-height: 300px;
+}
+
+.svg image {
+  pointer-events: none;
 }
 
 .silhouette {

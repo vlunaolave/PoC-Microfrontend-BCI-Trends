@@ -44,33 +44,17 @@
 }
 
 .svg {
-  width: min(460px, 100%);
+  width: min(520px, 100%);
   height: auto;
-  max-height: 230px;
+  max-height: 250px;
 }
 
-.hemisphere {
-  stroke: #5a343c;
-  stroke-width: 1.4;
-  transition: filter 220ms ease, opacity 220ms ease;
+.svg image {
+  pointer-events: none;
 }
 
-.leftActive {
-  filter: drop-shadow(0 0 16px rgba(124, 140, 255, 0.55));
-}
-
-.rightActive {
-  filter: drop-shadow(0 0 16px rgba(176, 124, 255, 0.55));
-}
-
-.medial {
-  stroke: #3a2228;
-  stroke-width: 1;
-  transition: filter 220ms ease;
-}
-
-.medialActive {
-  filter: drop-shadow(0 0 12px rgba(103, 212, 196, 0.55));
+.zone {
+  pointer-events: none;
 }
 
 .electrode {
@@ -79,13 +63,10 @@
   stroke-width: 2;
 }
 
-.cerebellum {
-  pointer-events: none;
-}
-
 .electrodeLabel {
   fill: var(--text-primary);
-  font-size: 11px;
+  font-size: 22px;
+  font-weight: 650;
   font-family: var(--font);
 }
 

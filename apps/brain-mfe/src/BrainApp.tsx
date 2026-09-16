@@ -84,7 +84,7 @@ export default function BrainApp() {
             ? "Actividad cortical simulada detectándose..."
             : highlight
               ? `Zona asociada: ${MOTOR_TASK_LABELS[highlight]}`
-              : "Vista educativa superior"}
+              : "Vista lateral izquierda educativa"}
         </div>
       </header>
       <div className={styles.figureWrap}>
@@ -92,8 +92,8 @@ export default function BrainApp() {
       </div>
       <div className={styles.legend}>
         <span title={TIPS.C3}>C3 · hemisferio izquierdo</span>
-        <span title={TIPS.CZ}>Cz · zona medial</span>
-        <span title={TIPS.C4}>C4 · hemisferio derecho</span>
+        <span title={TIPS.CZ}>Cz · vértice / medial</span>
+        <span title={TIPS.C4}>C4 · hemisferio derecho (esquemático)</span>
       </div>
       {prediction && actual ? (
         <div className={styles.compare} data-testid="brain-compare">
@@ -102,7 +102,7 @@ export default function BrainApp() {
         </div>
       ) : null}
       <p className={styles.caption}>
-        C3, Cz y C4 son posiciones aproximadas de electrodos EEG sobre región sensoriomotora. Las funciones corticales reales no son botones aislados.
+        Vista lateral izquierda. C3, Cz y C4 son posiciones aproximadas de electrodos EEG; C4 se marca de forma esquemática porque pertenece al hemisferio contralateral. Las funciones corticales reales no son botones aislados.
         {!isEmbeddedInShell() ? " Standalone Micro Frontend." : ""}
       </p>
     </section>

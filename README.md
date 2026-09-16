@@ -53,8 +53,8 @@ React 18, TypeScript strict, Vite 6, `@module-federation/vite`, pnpm workspaces,
 | App | Puerto | Responsabilidad |
 | --- | --- | --- |
 | Shell | 3000 | Composición, modos, architecture mode, error boundaries |
-| Body | 3001 | Selección de tarea motora y silueta SVG |
-| Brain | 3002 | Vista educativa del cerebro y electrodos |
+| Body | 3001 | Selección de tarea motora y silueta humana |
+| Brain | 3002 | Vista lateral educativa del cerebro y electrodos |
 | Signal | 3003 | EEG sintético, calibración y osciloscopio |
 | Decoder | 3004 | Features, clasificador heurístico y comando |
 
