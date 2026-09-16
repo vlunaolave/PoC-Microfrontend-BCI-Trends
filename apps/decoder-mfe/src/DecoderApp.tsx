@@ -12,13 +12,16 @@ import {
   type MotorTask,
 } from "@neuromfe/contracts";
 import { classifyMotorImagery, emptyEegFeatures, extractFeatures } from "@neuromfe/dsp";
-import { Footprints, Hand, Pause, Radio } from "lucide-react";
+import { Footprints, Hand, Pause, Radio, Smile, User } from "lucide-react";
 import styles from "./decoder.module.css";
 
 function patternIcon(task: MotorTask | null): ReactNode {
   if (task === "RIGHT_HAND") return <Hand size={28} />;
   if (task === "LEFT_HAND") return <Hand size={28} className={styles.flip} />;
+  if (task === "RIGHT_ARM") return <User size={28} />;
+  if (task === "LEFT_ARM") return <User size={28} className={styles.flip} />;
   if (task === "FEET") return <Footprints size={28} />;
+  if (task === "TONGUE") return <Smile size={28} />;
   if (task === "REST") return <Pause size={28} />;
   return <Radio size={28} />;
 }

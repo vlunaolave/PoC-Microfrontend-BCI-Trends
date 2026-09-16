@@ -12,6 +12,7 @@ export {
   SyntheticEEGSource,
   DatasetEEGSource,
   HardwareEEGSource,
+  LiveEEGStream,
   generateSyntheticWindow,
 } from "./synthetic";
 export * from "./constants";

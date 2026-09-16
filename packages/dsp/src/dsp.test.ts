@@ -55,6 +55,20 @@ describe("synthetic EEG + classifier", () => {
     expect(classifyMotorImagery(features, "feet").predictedTask).toBe("FEET");
   });
 
+  it("RIGHT_ARM is weaker than RIGHT_HAND on C3", () => {
+    const hand = extractFeatures(generateSyntheticWindow("RIGHT_HAND", 25, "hand"), baseline);
+    const arm = extractFeatures(generateSyntheticWindow("RIGHT_ARM", 26, "arm"), baseline);
+    expect(hand.C3.muSuppression).toBeGreaterThan(arm.C3.muSuppression);
+    expect(classifyMotorImagery(arm, "arm").predictedTask).toBe("RIGHT_ARM");
+  });
+
+  it("TONGUE looks bilateral rather than focal", () => {
+    const features = extractFeatures(generateSyntheticWindow("TONGUE", 27, "tongue"), baseline);
+    const result = classifyMotorImagery(features, "tongue");
+    expect(result.predictedTask).toBe("TONGUE");
+    expect(Math.abs(features.C3.muSuppression - features.C4.muSuppression)).toBeLessThan(0.2);
+  });
+
   it("REST stays below the motor threshold", () => {
     const features = extractFeatures(generateSyntheticWindow("REST", 24, "rest"), baseline);
     expect(classifyMotorImagery(features, "rest").predictedTask).toBe("REST");

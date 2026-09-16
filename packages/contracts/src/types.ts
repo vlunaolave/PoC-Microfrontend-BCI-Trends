@@ -1,6 +1,13 @@
 export type AppMode = "EXPLORE" | "BCI";
 
-export type MotorTask = "REST" | "LEFT_HAND" | "RIGHT_HAND" | "FEET";
+export type MotorTask =
+  | "REST"
+  | "LEFT_HAND"
+  | "RIGHT_HAND"
+  | "LEFT_ARM"
+  | "RIGHT_ARM"
+  | "FEET"
+  | "TONGUE";
 
 export type EEGChannel = "C3" | "CZ" | "C4";
 
@@ -10,7 +17,15 @@ export type MfeStatus = "LOADING" | "ONLINE" | "ERROR";
 
 export const EEG_CHANNELS: readonly EEGChannel[] = ["C3", "CZ", "C4"];
 
-export const MOTOR_TASKS: readonly MotorTask[] = ["REST", "LEFT_HAND", "RIGHT_HAND", "FEET"];
+export const MOTOR_TASKS: readonly MotorTask[] = [
+  "REST",
+  "LEFT_HAND",
+  "RIGHT_HAND",
+  "LEFT_ARM",
+  "RIGHT_ARM",
+  "FEET",
+  "TONGUE",
+];
 
 export const SAMPLE_RATE_HZ = 250;
 export const WINDOW_DURATION_MS = 2000;
@@ -63,14 +78,20 @@ export const MOTOR_TASK_LABELS: Record<MotorTask, string> = {
   REST: "Reposo",
   LEFT_HAND: "Mano izquierda",
   RIGHT_HAND: "Mano derecha",
+  LEFT_ARM: "Brazo izquierdo",
+  RIGHT_ARM: "Brazo derecho",
   FEET: "Pies",
+  TONGUE: "Lengua / cara",
 };
 
 export const MOTOR_TASK_COMMANDS: Record<MotorTask, string> = {
   REST: "Reposo / Sin intención motora detectada",
   LEFT_HAND: "Mover mano izquierda",
   RIGHT_HAND: "Mover mano derecha",
+  LEFT_ARM: "Mover brazo izquierdo",
+  RIGHT_ARM: "Mover brazo derecho",
   FEET: "Mover pies",
+  TONGUE: "Mover lengua / cara",
 };
 
 export const CHANNEL_LABELS: Record<EEGChannel, string> = {

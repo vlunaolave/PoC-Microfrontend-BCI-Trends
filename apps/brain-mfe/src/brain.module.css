@@ -79,9 +79,17 @@
 
 .electrodeLabel {
   fill: var(--text-primary);
-  font-size: 42px;
+  font-size: 28px;
   font-weight: 650;
   font-family: var(--font);
+}
+
+.site {
+  opacity: 0.78;
+}
+
+.siteActive {
+  opacity: 1;
 }
 
 .caption {

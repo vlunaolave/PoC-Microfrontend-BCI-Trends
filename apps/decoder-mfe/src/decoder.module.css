@@ -90,12 +90,24 @@
   --pattern: var(--signal-c3);
 }
 
+.resultLive[data-task="RIGHT_ARM"] {
+  --pattern: #5ad0f0;
+}
+
 .resultLive[data-task="LEFT_HAND"] {
   --pattern: var(--brain-right);
 }
 
+.resultLive[data-task="LEFT_ARM"] {
+  --pattern: #c59bff;
+}
+
 .resultLive[data-task="FEET"] {
   --pattern: var(--brain-medial);
+}
+
+.resultLive[data-task="TONGUE"] {
+  --pattern: #e8b84a;
 }
 
 .resultLive[data-task="REST"] {

@@ -64,7 +64,7 @@ export default function BodyApp() {
       </div>
 
       <div className={styles.controls}>
-        {(["RIGHT_HAND", "LEFT_HAND", "FEET", "REST"] as MotorTask[]).map((item) => (
+        {(["RIGHT_HAND", "LEFT_HAND", "RIGHT_ARM", "LEFT_ARM", "FEET", "TONGUE", "REST"] as MotorTask[]).map((item) => (
           <button
             key={item}
             type="button"

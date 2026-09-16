@@ -21,10 +21,21 @@ export function scoreChannels(features: EEGFeatures): ChannelScore[] {
   ];
 }
 
+const HAND_SCORE = 0.78;
+const TONGUE_SPREAD = 0.16;
+const TONGUE_FLOOR = 0.28;
+
+function lateralTask(channel: EEGChannel, score: number): MotorTask {
+  if (channel === "C3") return score >= HAND_SCORE ? "RIGHT_HAND" : "RIGHT_ARM";
+  if (channel === "C4") return score >= HAND_SCORE ? "LEFT_HAND" : "LEFT_ARM";
+  return "FEET";
+}
+
 export function classifyMotorImagery(features: EEGFeatures, trialId: string): ClassificationResult {
   const scores = [...scoreChannels(features)].sort((a, b) => b.score - a.score);
   const best = scores[0];
   const second = scores[1];
+  const third = scores[2];
 
   if (!best || best.score < MOVEMENT_THRESHOLD) {
     return {
@@ -36,12 +47,30 @@ export function classifyMotorImagery(features: EEGFeatures, trialId: string): Cl
     };
   }
 
+  const spread = best.score - (third?.score ?? 0);
+  const bilateral =
+    best.score >= TONGUE_FLOOR &&
+    (second?.score ?? 0) >= TONGUE_FLOOR &&
+    (third?.score ?? 0) >= TONGUE_FLOOR &&
+    spread < TONGUE_SPREAD;
+
+  if (bilateral) {
+    return {
+      trialId,
+      predictedTask: "TONGUE",
+      confidence: clamp(0.6 + best.score * 0.3, MIN_CONFIDENCE, MAX_CONFIDENCE),
+      dominantChannel: "CZ",
+      features,
+    };
+  }
+
   const margin = best.score - (second?.score ?? 0);
+  const predictedTask = lateralTask(best.channel, best.score);
   const confidence = clamp(0.58 + best.score * 0.35 + margin * 0.45, MIN_CONFIDENCE, MAX_CONFIDENCE);
 
   return {
     trialId,
-    predictedTask: best.task,
+    predictedTask,
     confidence,
     dominantChannel: best.channel,
     features,

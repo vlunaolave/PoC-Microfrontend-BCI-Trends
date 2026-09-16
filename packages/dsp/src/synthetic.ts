@@ -28,11 +28,32 @@ function taskProfiles(task: MotorTask): Record<EEGChannel, AmplitudeProfile> {
       C4: { mu: 0.22, beta: 0.16 },
     };
   }
+  if (task === "RIGHT_ARM") {
+    return {
+      C3: { mu: 0.58, beta: 0.5 },
+      CZ: { mu: 0.88, beta: 0.8 },
+      C4: { mu: 0.94, beta: 0.88 },
+    };
+  }
+  if (task === "LEFT_ARM") {
+    return {
+      C3: { mu: 0.94, beta: 0.88 },
+      CZ: { mu: 0.88, beta: 0.8 },
+      C4: { mu: 0.58, beta: 0.5 },
+    };
+  }
   if (task === "FEET") {
     return {
       C3: { mu: 0.92, beta: 0.86 },
       CZ: { mu: 0.22, beta: 0.16 },
       C4: { mu: 0.92, beta: 0.86 },
+    };
+  }
+  if (task === "TONGUE") {
+    return {
+      C3: { mu: 0.52, beta: 0.46 },
+      CZ: { mu: 0.5, beta: 0.44 },
+      C4: { mu: 0.52, beta: 0.46 },
     };
   }
   return REST_PROFILE;
@@ -54,8 +75,8 @@ function generateChannel(
   const jitterBeta = 0.92 + rng() * 0.16;
   for (let n = 0; n < sampleCount; n += 1) {
     const t = n / sampleRate;
-    const mu = profile.mu * jitterMu * 18 * Math.sin(2 * Math.PI * 10 * t + muPhase);
-    const beta = profile.beta * jitterBeta * 9 * Math.sin(2 * Math.PI * 20 * t + betaPhase);
+    const mu = profile.mu * jitterMu * 18 * Math.sin(2 * Math.PI * (10 + 0.35 * Math.sin(2 * Math.PI * 0.2 * t)) * t + muPhase);
+    const beta = profile.beta * jitterBeta * 9 * Math.sin(2 * Math.PI * (20 + 0.5 * Math.sin(2 * Math.PI * 0.13 * t)) * t + betaPhase);
     const drift = 4 * Math.sin(2 * Math.PI * 0.3 * t + driftPhase);
     const mains = 1.2 * Math.sin(2 * Math.PI * 60 * t + mainsPhase);
     const noise = (rng() - 0.5) * 6;
@@ -97,8 +118,75 @@ export class SyntheticEEGSource implements EEGSource {
 
   randomTask(seed: number): MotorTask {
     const rng = createRng(seed);
-    const tasks: MotorTask[] = ["REST", "LEFT_HAND", "RIGHT_HAND", "FEET"];
+    const tasks: MotorTask[] = ["REST", "LEFT_HAND", "RIGHT_HAND", "LEFT_ARM", "RIGHT_ARM", "FEET", "TONGUE"];
     return tasks[Math.floor(rng() * tasks.length)] ?? "REST";
+  }
+}
+
+interface ChannelOscillator {
+  muPhase: number;
+  betaPhase: number;
+  driftPhase: number;
+  mainsPhase: number;
+  muFreq: number;
+  betaFreq: number;
+  mu: number;
+  beta: number;
+}
+
+const BUFFER_SECONDS = 2.4;
+
+export class LiveEEGStream {
+  private time = 0;
+  private oscillators: Record<EEGChannel, ChannelOscillator>;
+  private target: Record<EEGChannel, AmplitudeProfile> = { ...REST_PROFILE };
+
+  constructor(seed = 2026) {
+    const rng = createRng(seed);
+    const make = (): ChannelOscillator => ({
+      muPhase: rng() * Math.PI * 2,
+      betaPhase: rng() * Math.PI * 2,
+      driftPhase: rng() * Math.PI * 2,
+      mainsPhase: rng() * Math.PI * 2,
+      muFreq: 9.4 + rng() * 1.4,
+      betaFreq: 18.5 + rng() * 3,
+      mu: REST_PROFILE.C3.mu,
+      beta: REST_PROFILE.C3.beta,
+    });
+    this.oscillators = { C3: make(), CZ: make(), C4: make() };
+  }
+
+  setTask(task: MotorTask): void {
+    this.target = taskProfiles(task);
+  }
+
+  push(sampleCount: number, buffers: Record<EEGChannel, number[]>, filtered: boolean, maxLength = Math.round(SAMPLE_RATE_HZ * BUFFER_SECONDS)): void {
+    const dt = 1 / SAMPLE_RATE_HZ;
+    for (let i = 0; i < sampleCount; i += 1) {
+      this.time += dt;
+      for (const channel of EEG_CHANNELS) {
+        const osc = this.oscillators[channel];
+        const target = this.target[channel];
+        osc.mu += (target.mu - osc.mu) * 0.04;
+        osc.beta += (target.beta - osc.beta) * 0.04;
+        const wander = 0.25 * Math.sin(2 * Math.PI * 0.18 * this.time + osc.driftPhase);
+        osc.muPhase += 2 * Math.PI * (osc.muFreq + wander) * dt;
+        osc.betaPhase += 2 * Math.PI * (osc.betaFreq + wander * 0.4) * dt;
+        osc.driftPhase += 2 * Math.PI * 0.28 * dt;
+        osc.mainsPhase += 2 * Math.PI * 60 * dt;
+        const mu = osc.mu * 18 * Math.sin(osc.muPhase);
+        const beta = osc.beta * 9 * Math.sin(osc.betaPhase);
+        const drift = filtered ? 0 : 3.2 * Math.sin(osc.driftPhase);
+        const mains = filtered ? 0 : 1.1 * Math.sin(osc.mainsPhase);
+        const noise = (Math.sin(this.time * 37.1 + osc.muPhase) * 0.7 + Math.sin(this.time * 53.3 + osc.betaPhase)) * (filtered ? 0.8 : 1.6);
+        const sample = mu + beta + drift + mains + noise;
+        const buffer = buffers[channel];
+        buffer.push(sample);
+        if (buffer.length > maxLength) {
+          buffer.splice(0, buffer.length - maxLength);
+        }
+      }
+    }
   }
 }
 

@@ -14,15 +14,11 @@ import {
   type MotorTask,
 } from "@neuromfe/contracts";
 import { bandpassFilter, emptyEegFeatures, extractFeatures, removeDC, SyntheticEEGSource } from "@neuromfe/dsp";
-import { Oscilloscope, type ScopeBuffers } from "./Oscilloscope";
+import { Oscilloscope } from "./Oscilloscope";
 import styles from "./signal.module.css";
 
 const VERSION = "1.0.0";
 const source = new SyntheticEEGSource(2026);
-
-function emptyBuffers(): ScopeBuffers {
-  return { C3: [], CZ: [], C4: [] };
-}
 
 function filterWindow(eeg: EEGWindow): EEGWindow {
   return {
@@ -32,10 +28,6 @@ function filterWindow(eeg: EEGWindow): EEGWindow {
       samples: bandpassFilter(removeDC(channel.samples), eeg.sampleRate),
     })),
   };
-}
-
-function samplesOf(window: EEGWindow, channel: "C3" | "CZ" | "C4"): number[] {
-  return window.channels.find((item) => item.channel === channel)?.samples ?? [];
 }
 
 function formatPower(value: number): string {
@@ -52,9 +44,8 @@ export default function SignalApp() {
   const [paused, setPaused] = useState(false);
   const [calibrated, setCalibrated] = useState(false);
   const [features, setFeatures] = useState<EEGFeatures>(emptyEegFeatures());
-  const buffersRef = useRef<ScopeBuffers>(emptyBuffers());
+  const [liveTask, setLiveTask] = useState<MotorTask>("REST");
   const pausedRef = useRef(false);
-  const viewRef = useRef<"RAW" | "FILTERED">("RAW");
   const rawRef = useRef<EEGWindow | null>(null);
   const filteredRef = useRef<EEGWindow | null>(null);
   const secretsRef = useRef<Map<string, MotorTask>>(new Map());
@@ -67,24 +58,8 @@ export default function SignalApp() {
   }, [paused]);
 
   useEffect(() => {
-    viewRef.current = view;
-    showWindow(rawRef.current, filteredRef.current, 1);
-  }, [view]);
-
-  useEffect(() => {
     modeRef.current = mode;
   }, [mode]);
-
-  function showWindow(raw: EEGWindow | null, filtered: EEGWindow | null, ratio: number) {
-    const sourceWindow = viewRef.current === "FILTERED" ? filtered : raw;
-    if (!sourceWindow) return;
-    const slice = (channel: "C3" | "CZ" | "C4") => {
-      const samples = samplesOf(sourceWindow, channel);
-      const count = Math.max(1, Math.floor(samples.length * ratio));
-      return samples.slice(0, count);
-    };
-    buffersRef.current = { C3: slice("C3"), CZ: slice("CZ"), C4: slice("C4") };
-  }
 
   async function playWindow(raw: EEGWindow, filtered: EEGWindow) {
     const token = playToken.current + 1;
@@ -93,7 +68,6 @@ export default function SignalApp() {
     filteredRef.current = filtered;
     const duration = demoDelay(WINDOW_DURATION_MS);
     if (duration <= 0) {
-      showWindow(raw, filtered, 1);
       return;
     }
     let elapsed = 0;
@@ -109,9 +83,7 @@ export default function SignalApp() {
           elapsed += now - last;
         }
         last = now;
-        const ratio = Math.min(1, elapsed / duration);
-        showWindow(raw, filtered, ratio);
-        if (ratio >= 1) {
+        if (elapsed >= duration) {
           resolve();
           return;
         }
@@ -124,6 +96,7 @@ export default function SignalApp() {
   async function calibrate() {
     calibratedRef.current = false;
     setCalibrated(false);
+    setLiveTask("REST");
     publish(EVENT_NAMES.EEG_CALIBRATION_STARTED, { timestamp: Date.now() });
     const window = await source.calibrate();
     const filtered = filterWindow(window);
@@ -139,6 +112,7 @@ export default function SignalApp() {
     if (!calibratedRef.current) {
       await calibrate();
     }
+    setLiveTask(task);
     const trial = await source.startTrial({ task });
     if (secret) {
       secretsRef.current.set(trial.trialId, task);
@@ -157,7 +131,10 @@ export default function SignalApp() {
     publish(EVENT_NAMES.MFE_READY, { id: "signal-mfe", version: VERSION, timestamp: Date.now() });
     void calibrate();
     const unsubscribers = [
-      subscribe(EVENT_NAMES.APP_MODE_CHANGED, (payload) => setMode(payload.mode)),
+      subscribe(EVENT_NAMES.APP_MODE_CHANGED, (payload) => {
+        setMode(payload.mode);
+        setLiveTask("REST");
+      }),
       subscribe(EVENT_NAMES.MOTOR_TASK_SELECTED, (payload) => {
         if (modeRef.current === "EXPLORE") {
           void runTrial(payload.task, false);
@@ -219,7 +196,7 @@ export default function SignalApp() {
             Recalibrar
           </button>
         </div>
-        <Oscilloscope buffersRef={buffersRef} paused={paused} viewLabel={view} />
+        <Oscilloscope task={liveTask} paused={paused} viewLabel={view} />
         <p className={styles.caption}>Unidades sintéticas (µV simulados). Fuente actual: SyntheticEEGSource. No hay hardware conectado.</p>
       </div>
       <aside className={styles.side}>

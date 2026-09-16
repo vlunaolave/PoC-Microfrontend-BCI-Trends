@@ -13,13 +13,6 @@ import styles from "./brain.module.css";
 
 const VERSION = "1.0.0";
 
-function zoneForTask(task: MotorTask | null): "left" | "right" | "medial" | "none" {
-  if (task === "RIGHT_HAND") return "left";
-  if (task === "LEFT_HAND") return "right";
-  if (task === "FEET") return "medial";
-  return "none";
-}
-
 export default function BrainApp() {
   const [mode, setMode] = useState<AppMode>("EXPLORE");
   const [highlight, setHighlight] = useState<MotorTask | null>(null);
@@ -70,14 +63,12 @@ export default function BrainApp() {
     return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
   }, []);
 
-  const zone = zoneForTask(highlight);
-
   return (
     <section className={styles.panel} data-testid="mfe-brain" aria-label="Brain Micro Frontend">
       <header className={styles.header}>
         <div>
           <p className={styles.kicker}>Cerebro</p>
-          <h2 className={styles.title}>Corteza sensoriomotora</h2>
+          <h2 className={styles.title}>Mapa 10-20 educativo</h2>
         </div>
         <div className={styles.status} data-testid="brain-status">
           {detecting
@@ -88,12 +79,15 @@ export default function BrainApp() {
         </div>
       </header>
       <div className={styles.figureWrap}>
-        <BrainFigure zone={zone} />
+        <BrainFigure task={highlight} />
       </div>
       <div className={styles.legend}>
-        <span title={TIPS.C3}>C3 · hemisferio izquierdo</span>
-        <span title={TIPS.CZ}>Cz · vértice / medial</span>
-        <span title={TIPS.C4}>C4 · hemisferio derecho (esquemático)</span>
+        <span title={TIPS.F3}>F3 · frontal</span>
+        <span title={TIPS.C3}>C3 · mano/brazo der.</span>
+        <span title={TIPS.Cz}>Cz · pies</span>
+        <span title={TIPS.C4}>C4 · mano/brazo izq.</span>
+        <span title={TIPS.P3}>P3 · parietal</span>
+        <span title={TIPS.O1}>O1 · occipital</span>
       </div>
       {prediction && actual ? (
         <div className={styles.compare} data-testid="brain-compare">
@@ -102,7 +96,7 @@ export default function BrainApp() {
         </div>
       ) : null}
       <p className={styles.caption}>
-        Vista lateral izquierda. C3, Cz y C4 son posiciones aproximadas de electrodos EEG; C4 se marca de forma esquemática porque pertenece al hemisferio contralateral. Las funciones corticales reales no son botones aislados.
+        Posiciones 10-20 aproximadas sobre una vista lateral izquierda. C4 se marca de forma esquemática. No es un mapa médico.
         {!isEmbeddedInShell() ? " Standalone Micro Frontend." : ""}
       </p>
     </section>
