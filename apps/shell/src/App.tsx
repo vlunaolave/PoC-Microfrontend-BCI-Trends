@@ -258,91 +258,94 @@ export default function App() {
         </div>
       </header>
 
-      <div className={styles.row}>
-        {remoteSlot(
-          "body-mfe",
-          "BODY MFE",
-          "3001",
-          <RemoteErrorBoundary
-            name="Body MFE"
-            onError={() => publish(EVENT_NAMES.MFE_ERROR, { id: "body-mfe", message: "load failed", timestamp: Date.now() })}
-          >
-            <Suspense fallback={<RemoteSkeleton label="Body MFE" />}>
-              <BodyApp />
-            </Suspense>
-          </RemoteErrorBoundary>,
-        )}
-        {remoteSlot(
-          "brain-mfe",
-          "BRAIN MFE",
-          "3002",
-          <RemoteErrorBoundary
-            name="Brain MFE"
-            onError={() => publish(EVENT_NAMES.MFE_ERROR, { id: "brain-mfe", message: "load failed", timestamp: Date.now() })}
-          >
-            <Suspense fallback={<RemoteSkeleton label="Brain MFE" />}>
-              <BrainApp />
-            </Suspense>
-          </RemoteErrorBoundary>,
-        )}
-      </div>
-
-      {remoteSlot(
-        "decoder-mfe",
-        "DECODER MFE",
-        "3004",
-        <RemoteErrorBoundary
-          name="Decoder MFE"
-          onError={() => publish(EVENT_NAMES.MFE_ERROR, { id: "decoder-mfe", message: "load failed", timestamp: Date.now() })}
-        >
-          <Suspense fallback={<RemoteSkeleton label="Decoder MFE" />}>
-            <DecoderApp />
-          </Suspense>
-        </RemoteErrorBoundary>,
-      )}
-
-      {remoteSlot(
-        "signal-mfe",
-        "SIGNAL MFE",
-        "3003",
-        <RemoteErrorBoundary
-          name="Signal MFE"
-          onError={() => publish(EVENT_NAMES.MFE_ERROR, { id: "signal-mfe", message: "load failed", timestamp: Date.now() })}
-        >
-          <Suspense fallback={<RemoteSkeleton label="Signal MFE" />}>
-            <SignalApp />
-          </Suspense>
-        </RemoteErrorBoundary>,
-      )}
-
-      <div className={styles.card} data-testid="what-is-happening">
-        <h2>¿Qué está pasando?</h2>
-        <ol className={styles.steps}>
-          {explanation.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ol>
-        {architecture ? (
-          <div className={styles.architecture}>
-            <p className={styles.muted}>Body selecciona · Brain visualiza · Signal adquiere · Decoder clasifica.</p>
-            <h3>Micro Frontends</h3>
-            <div className={styles.statusList} data-testid="architecture-status">
-              {MFE_META.map((item) => (
-                <div key={item.id}>
-                  {item.label} · <span className={statusClass(status[item.id])}>{status[item.id]}</span>
-                </div>
+      <div className={styles.workspace}>
+        <div className={styles.bodyColumn}>
+          {remoteSlot(
+            "body-mfe",
+            "BODY MFE",
+            "3001",
+            <RemoteErrorBoundary
+              name="Body MFE"
+              onError={() => publish(EVENT_NAMES.MFE_ERROR, { id: "body-mfe", message: "load failed", timestamp: Date.now() })}
+            >
+              <Suspense fallback={<RemoteSkeleton label="Body MFE" />}>
+                <BodyApp />
+              </Suspense>
+            </RemoteErrorBoundary>,
+          )}
+        </div>
+        <div className={styles.topRight}>
+          {remoteSlot(
+            "brain-mfe",
+            "BRAIN MFE",
+            "3002",
+            <RemoteErrorBoundary
+              name="Brain MFE"
+              onError={() => publish(EVENT_NAMES.MFE_ERROR, { id: "brain-mfe", message: "load failed", timestamp: Date.now() })}
+            >
+              <Suspense fallback={<RemoteSkeleton label="Brain MFE" />}>
+                <BrainApp />
+              </Suspense>
+            </RemoteErrorBoundary>,
+          )}
+          {remoteSlot(
+            "signal-mfe",
+            "SIGNAL MFE",
+            "3003",
+            <RemoteErrorBoundary
+              name="Signal MFE"
+              onError={() => publish(EVENT_NAMES.MFE_ERROR, { id: "signal-mfe", message: "load failed", timestamp: Date.now() })}
+            >
+              <Suspense fallback={<RemoteSkeleton label="Signal MFE" />}>
+                <SignalApp />
+              </Suspense>
+            </RemoteErrorBoundary>,
+          )}
+        </div>
+        <div className={styles.bottomRight}>
+          {remoteSlot(
+            "decoder-mfe",
+            "DECODER MFE",
+            "3004",
+            <RemoteErrorBoundary
+              name="Decoder MFE"
+              onError={() => publish(EVENT_NAMES.MFE_ERROR, { id: "decoder-mfe", message: "load failed", timestamp: Date.now() })}
+            >
+              <Suspense fallback={<RemoteSkeleton label="Decoder MFE" />}>
+                <DecoderApp />
+              </Suspense>
+            </RemoteErrorBoundary>,
+          )}
+          <div className={`${styles.card} ${styles.whatCard}`} data-testid="what-is-happening">
+            <h2>¿Qué está pasando?</h2>
+            <ol className={styles.steps}>
+              {explanation.map((item) => (
+                <li key={item}>{item}</li>
               ))}
-            </div>
-            <h3>Communication · Domain Events</h3>
-            <div className={styles.events} data-testid="event-monitor">
-              {events.map((event, index) => (
-                <div key={`${event.time}-${event.name}-${index}`}>
-                  {event.time} {eventLabel(event.name)} {event.summary}
+            </ol>
+            {architecture ? (
+              <div className={styles.architecture}>
+                <p className={styles.muted}>Body selecciona · Brain visualiza · Signal adquiere · Decoder clasifica.</p>
+                <h3>Micro Frontends</h3>
+                <div className={styles.statusList} data-testid="architecture-status">
+                  {MFE_META.map((item) => (
+                    <div key={item.id}>
+                      {item.label} · <span className={statusClass(status[item.id])}>{status[item.id]}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+                <h3>Communication · Domain Events</h3>
+                <div className={styles.events} data-testid="event-monitor">
+                  {events.map((event, index) => (
+                    <div key={`${event.time}-${event.name}-${index}`}>
+                      {event.time} {eventLabel(event.name)} {event.summary}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
-        ) : null}
+        </div>
       </div>
 
       <footer className={styles.footer}>
