@@ -75,7 +75,7 @@ export default function BrainApp() {
       <header className={styles.header}>
         <div>
           <p className={styles.kicker}>Cerebro</p>
-          <h2 className={styles.title}>Mapa 10-20 educativo</h2>
+          <h2 className={styles.title}>Mapa 10-20</h2>
         </div>
         <div className={styles.status} data-testid="brain-status">
           {detecting

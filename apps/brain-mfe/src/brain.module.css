@@ -98,24 +98,17 @@
 }
 
 .caption {
-  margin: 0;
-  font-size: 10px;
-  color: var(--text-muted);
-  flex-shrink: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  display: none;
 }
 
 .legend {
   display: flex;
-  gap: 6px 10px;
+  gap: 4px 8px;
   flex-wrap: wrap;
   font-size: 10px;
   color: var(--text-secondary);
   flex-shrink: 0;
-  max-height: 36px;
+  max-height: 28px;
   overflow: hidden;
 }
 
