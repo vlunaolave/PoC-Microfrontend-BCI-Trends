@@ -186,27 +186,29 @@ export default function SignalApp() {
               {motorTaskWaveHint(focusedTask ?? liveTask)}
             </p>
           </div>
-          <div className={styles.meta}>
-            <span>Sample Rate: {SAMPLE_RATE_HZ} Hz</span>
-            <span>Window: {(WINDOW_DURATION_MS / 1000).toFixed(1)} s</span>
-            <span>Channels: {EEG_CHANNELS.length}</span>
+          <div className={styles.toolbarRight}>
+            <div className={styles.meta}>
+              <span>Sample Rate: {SAMPLE_RATE_HZ} Hz</span>
+              <span>Window: {(WINDOW_DURATION_MS / 1000).toFixed(1)} s</span>
+              <span>Channels: {EEG_CHANNELS.length}</span>
+            </div>
+            <div className={styles.actions}>
+              <div className={styles.viewToggle} role="group" aria-label="Vista de señal">
+                <button type="button" aria-pressed={view === "RAW"} onClick={() => setView("RAW")}>
+                  RAW
+                </button>
+                <button type="button" aria-pressed={view === "FILTERED"} onClick={() => setView("FILTERED")}>
+                  FILTERED
+                </button>
+              </div>
+              <button type="button" aria-pressed={paused} onClick={() => setPaused((value) => !value)}>
+                {paused ? "Reanudar" : "Pausar señal"}
+              </button>
+              <button type="button" onClick={() => void calibrate()}>
+                Recalibrar
+              </button>
+            </div>
           </div>
-        </div>
-        <div className={styles.actions}>
-          <div className={styles.viewToggle} role="group" aria-label="Vista de señal">
-            <button type="button" aria-pressed={view === "RAW"} onClick={() => setView("RAW")}>
-              RAW
-            </button>
-            <button type="button" aria-pressed={view === "FILTERED"} onClick={() => setView("FILTERED")}>
-              FILTERED
-            </button>
-          </div>
-          <button type="button" aria-pressed={paused} onClick={() => setPaused((value) => !value)}>
-            {paused ? "Reanudar" : "Pausar señal"}
-          </button>
-          <button type="button" onClick={() => void calibrate()}>
-            Recalibrar
-          </button>
         </div>
         <Oscilloscope task={focusedTask ?? liveTask} paused={paused} viewLabel={view} />
         <p className={styles.caption}>Montaje 10-20 simulado (Fp1–O1). El clasificador motor usa C3, Cz y C4. Unidades sintéticas; no hay hardware conectado.</p>
@@ -214,12 +216,14 @@ export default function SignalApp() {
       <aside className={styles.side}>
         <div className={styles.card}>
           <p className={styles.kicker}>Baseline 10-20</p>
-          {EEG_CHANNELS.map((channel) => (
-            <div className={styles.calRow} key={channel}>
-              <span>{CHANNEL_LABELS[channel]}</span>
-              <span className={calibrated ? styles.ok : undefined}>{calibrated ? "✓" : "…"}</span>
-            </div>
-          ))}
+          <div className={styles.calGrid}>
+            {EEG_CHANNELS.map((channel) => (
+              <div className={styles.calRow} key={channel}>
+                <span>{CHANNEL_LABELS[channel]}</span>
+                <span className={calibrated ? styles.ok : undefined}>{calibrated ? "✓" : "…"}</span>
+              </div>
+            ))}
+          </div>
           <p className={styles.caption}>Estado: {calibrated ? "Calibrado" : "Calibrando señal de reposo..."}</p>
         </div>
         <div className={styles.card}>

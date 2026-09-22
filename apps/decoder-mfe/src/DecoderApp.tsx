@@ -16,14 +16,14 @@ import { Footprints, Hand, Pause, Radio, Smile, User } from "lucide-react";
 import styles from "./decoder.module.css";
 
 function patternIcon(task: MotorTask | null): ReactNode {
-  if (task === "RIGHT_HAND") return <Hand size={28} />;
-  if (task === "LEFT_HAND") return <Hand size={28} className={styles.flip} />;
-  if (task === "RIGHT_ARM") return <User size={28} />;
-  if (task === "LEFT_ARM") return <User size={28} className={styles.flip} />;
-  if (task === "FEET") return <Footprints size={28} />;
-  if (task === "TONGUE") return <Smile size={28} />;
-  if (task === "REST") return <Pause size={28} />;
-  return <Radio size={28} />;
+  if (task === "RIGHT_HAND") return <Hand size={22} />;
+  if (task === "LEFT_HAND") return <Hand size={22} className={styles.flip} />;
+  if (task === "RIGHT_ARM") return <User size={22} />;
+  if (task === "LEFT_ARM") return <User size={22} className={styles.flip} />;
+  if (task === "FEET") return <Footprints size={22} />;
+  if (task === "TONGUE") return <Smile size={22} />;
+  if (task === "REST") return <Pause size={22} />;
+  return <Radio size={22} />;
 }
 
 const VERSION = "1.0.0";
@@ -109,19 +109,6 @@ export default function DecoderApp() {
 
   return (
     <section className={styles.panel} data-testid="mfe-decoder" aria-label="Decoder Micro Frontend">
-      <div>
-        <p className={styles.kicker}>Processing Pipeline</p>
-        <h2 className={styles.title}>RAW → Filter → FFT → Features → Classifier</h2>
-        <span className={styles.badge}>Clasificador heurístico basado en potencia Mu/Beta</span>
-        <ol className={styles.steps}>
-          {STEPS.map((step) => (
-            <li key={step.id} className={activeSteps.includes(step.id) ? styles.done : undefined}>
-              <span>{activeSteps.includes(step.id) ? "✓" : "○"}</span>
-              {step.label}
-            </li>
-          ))}
-        </ol>
-      </div>
       <div
         className={`${styles.result} ${result ? styles.resultLive : styles.resultIdle}`}
         data-testid="classification-result"
@@ -172,6 +159,23 @@ export default function DecoderApp() {
         <div className={styles.live} aria-live="polite">
           {result ? `${MOTOR_TASK_COMMANDS[result.predictedTask]}. Confianza ${Math.round(result.confidence * 100)} por ciento.` : ""}
         </div>
+      </div>
+      <div className={styles.pipeline}>
+        <div className={styles.pipelineHead}>
+          <div>
+            <p className={styles.kicker}>Processing Pipeline</p>
+            <h2 className={styles.title}>RAW → Filter → FFT → Features → Classifier</h2>
+          </div>
+          <span className={styles.badge}>Clasificador heurístico basado en potencia Mu/Beta</span>
+        </div>
+        <ol className={styles.steps}>
+          {STEPS.map((step) => (
+            <li key={step.id} className={activeSteps.includes(step.id) ? styles.done : undefined}>
+              <span>{activeSteps.includes(step.id) ? "✓" : "○"}</span>
+              {step.label}
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

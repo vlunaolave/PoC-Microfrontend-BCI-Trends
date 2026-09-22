@@ -1,41 +1,55 @@
 .panel {
   height: 100%;
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
-  gap: 12px;
-  padding: 12px 14px;
+  grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 8px 12px 8px;
   min-height: 0;
 }
 
 .kicker {
   margin: 0;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
 .title {
-  margin: 2px 0 12px;
-  font-size: 15px;
+  margin: 2px 0 0;
+  font-size: 13px;
   font-weight: 650;
+}
+
+.pipeline {
+  min-height: 0;
+}
+
+.pipelineHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .steps {
   list-style: none;
-  margin: 12px 0 0;
+  margin: 8px 0 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .steps li {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 12px;
+  min-width: 0;
 }
 
 .done {
@@ -46,9 +60,10 @@
   display: inline-flex;
   border: 1px solid var(--border-strong);
   border-radius: 999px;
-  padding: 3px 8px;
-  font-size: 11px;
+  padding: 2px 8px;
+  font-size: 10px;
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .result {
@@ -56,11 +71,12 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border-radius: 18px;
-  padding: 16px 18px 14px;
+  border-radius: 14px;
+  padding: 10px 14px 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  justify-content: center;
+  gap: 6px;
   min-height: 0;
   color: var(--text-primary);
   background:
@@ -137,18 +153,18 @@
 .commandRow {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding-left: 8px;
-  min-height: 56px;
+  min-height: 40px;
 }
 
 .glyph {
-  flex: 0 0 48px;
-  width: 48px;
-  height: 48px;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
-  border-radius: 14px;
+  border-radius: 12px;
   color: var(--pattern);
   background: color-mix(in srgb, var(--pattern) 16%, transparent);
   border: 1px solid color-mix(in srgb, var(--pattern) 35%, transparent);
@@ -160,7 +176,7 @@
 
 .intent {
   margin: 0;
-  font-size: 26px;
+  font-size: 22px;
   line-height: 1.12;
   font-weight: 750;
   letter-spacing: -0.03em;
@@ -169,13 +185,13 @@
 
 .resultIdle .intent {
   color: var(--text-secondary);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
 }
 
 .meter {
   margin-left: 8px;
-  height: 7px;
+  height: 6px;
   border-radius: 99px;
   background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
@@ -190,8 +206,8 @@
 
 .meta {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  flex-wrap: wrap;
+  gap: 4px 16px;
   margin-left: 8px;
   font-size: 12px;
   color: var(--text-secondary);
@@ -204,10 +220,13 @@
 }
 
 .truth {
-  margin: 4px 0 0 8px;
-  padding-top: 8px;
+  margin: 2px 0 0 8px;
+  padding-top: 6px;
   border-top: 1px solid var(--border);
-  font-size: 13px;
+  font-size: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
 }
 
 .match {
@@ -228,8 +247,23 @@
   clip: rect(0 0 0 0);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
+  .steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
   .panel {
-    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    overflow: auto;
+  }
+
+  .steps {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .intent {
+    font-size: 18px;
   }
 }

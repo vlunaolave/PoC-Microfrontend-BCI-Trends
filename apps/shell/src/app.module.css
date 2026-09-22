@@ -1,10 +1,12 @@
 .app {
   min-height: 100vh;
   height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
   display: grid;
-  grid-template-rows: 58px minmax(260px, 1.05fr) minmax(160px, 0.7fr) minmax(280px, 1fr) 28px;
-  gap: 8px;
-  padding: 8px 12px 4px;
+  grid-template-rows: 52px minmax(0, 1.25fr) minmax(168px, 0.62fr) minmax(0, 1fr) auto 22px;
+  gap: 6px;
+  padding: 6px 10px 4px;
   background:
     radial-gradient(1200px 500px at 10% -10%, rgba(61, 184, 232, 0.08), transparent 50%),
     radial-gradient(900px 400px at 100% 0%, rgba(139, 124, 246, 0.08), transparent 46%),
@@ -157,24 +159,18 @@
   color: var(--warning);
 }
 
-.bottom {
-  display: grid;
-  grid-template-columns: 0.55fr 1.45fr;
-  gap: 10px;
-  min-height: 0;
-}
-
 .card {
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 12px;
-  overflow: auto;
+  padding: 8px 12px;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .card h3,
 .card h2 {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font-size: 13px;
 }
 
@@ -186,9 +182,34 @@
 
 .steps {
   margin: 0;
-  padding-left: 18px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
   font-size: 12px;
   color: var(--text-secondary);
+  counter-reset: happening;
+}
+
+.steps li {
+  counter-increment: happening;
+  max-width: 100%;
+}
+
+.steps li::before {
+  content: counter(happening) ". ";
+  color: var(--accent);
+  font-weight: 650;
+}
+
+.architecture {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  max-height: 120px;
+  overflow: auto;
 }
 
 .footer {
@@ -197,7 +218,9 @@
   gap: 12px;
   color: var(--text-muted);
   font-size: 11px;
-  padding: 0 4px 4px;
+  padding: 0 4px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .overlay {
@@ -281,12 +304,17 @@
 @media (max-width: 1100px) {
   .app {
     height: auto;
-    grid-template-rows: auto auto auto auto auto;
+    max-height: none;
+    overflow: auto;
+    grid-template-rows: auto;
   }
-  .row,
-  .bottom {
+  .row {
     grid-template-columns: 1fr;
     min-height: 280px;
+  }
+  .architecture {
+    grid-template-columns: 1fr;
+    max-height: none;
   }
 }
 
